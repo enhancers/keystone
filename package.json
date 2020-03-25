@@ -9,6 +9,7 @@
   "homepage": "https://github.com/keystonejs/keystone",
   "scripts": {
     "dev": "yarn demo todo dev",
+    "rels": "yarn demo todo rels",
     "demo": "yarn --cwd ./demo-projects",
     "website": "yarn --cwd ./website",
     "arch-docs": "yarn --cwd ./packages/arch/docs",
