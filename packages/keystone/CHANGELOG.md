@@ -1,5 +1,11 @@
 # @keystonejs/keystone
 
+## 7.1.0
+
+### Minor Changes
+
+- [`3407fa68`](https://github.com/keystonejs/keystone/commit/3407fa68b91d7ebb3e7288c7e95631013fe12535) [#2575](https://github.com/keystonejs/keystone/pull/2575) Thanks [@MadeByMike](https://github.com/MadeByMike)! - Added a cli script `keystone create-tables` that will initialise an empty database with the Knex Adapter.
+
 ## 7.0.0
 
 ### Major Changes

@@ -1,5 +1,15 @@
 # @keystonejs/website
 
+## 5.3.0
+
+### Minor Changes
+
+- [`6458ffa0`](https://github.com/keystonejs/keystone/commit/6458ffa08e0e77fbb039a042a13129310937946d) [#2579](https://github.com/keystonejs/keystone/pull/2579) Thanks [@jossmac](https://github.com/jossmac)! - Added heading navigation to the docs pages
+
+### Patch Changes
+
+- [`6458ffa0`](https://github.com/keystonejs/keystone/commit/6458ffa08e0e77fbb039a042a13129310937946d) [#2579](https://github.com/keystonejs/keystone/pull/2579) Thanks [@jossmac](https://github.com/jossmac)! - Made the header and sidebar sticky
+
 ## 5.2.0
 
 ### Minor Changes
