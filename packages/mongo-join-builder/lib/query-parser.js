@@ -50,6 +50,29 @@ function queryParser({ listAdapter, getUID = cuid }, query, pathSoFar = [], incl
         path,
         getUID(key)
       );
+
+      // Improved mongo query for keystone v6.0.1
+      if(Object.keys(value).length == 1 && (value.id || value.id_not || value.id_in || value.id_not_in)) {
+        const filterType = key.replace(relationshipInfo.field, '');
+        let queryCondition = {};
+        if(value.id) {
+          if(filterType === '' || filterType === '_some' || filterType === '_every' ) {
+            queryCondition[relationshipInfo.field] = {$eq: listAdapter.mongoose.Types.ObjectId(value.id)};
+          } else if(filterType === '_none') {
+            queryCondition[relationshipInfo.field] = {$ne: listAdapter.mongoose.Types.ObjectId(value.id)};
+          }
+        } else if(value.id_not && (filterType === '' || filterType === 'some' || filterType === '_every' || filterType === '_none')) {
+          queryCondition[relationshipInfo.field] = {$ne: listAdapter.mongoose.Types.ObjectId(value.id_not)};
+        } else if(value.id_in && (filterType === '' || filterType === '_some')) {
+          queryCondition[relationshipInfo.field] = {$in: value.id_in.map(el => listAdapter.mongoose.Types.ObjectId(el)) };
+        } else if(value.id_not_in && (filterType === '' || filterType === '_every')) {
+          queryCondition[relationshipInfo.field] = {$not: {$in: value.id_not_in.map(el => listAdapter.mongoose.Types.ObjectId(el)) }};
+        }
+        if(Object.keys(queryCondition).length > 0) {
+          return {matchTerm: queryCondition};
+        }
+      }
+
       return {
         // matchTerm is our filtering expression. This determines if the
         // parent item is included in the final list
