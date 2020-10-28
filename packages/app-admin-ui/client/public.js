@@ -1,16 +1,16 @@
 import React, { useMemo, Suspense } from 'react';
 import ReactDOM from 'react-dom';
-import { ApolloProvider } from '@apollo/react-hooks';
+import { ApolloProvider } from '@apollo/client';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastProvider } from 'react-toast-notifications';
 import { Global } from '@emotion/core';
 
 import { globalStyles } from '@arch-ui/theme';
 
-import ApolloClient from './apolloClient';
+import { initApolloClient } from './apolloClient';
 
-import ConnectivityListener from './components/ConnectivityListener';
 import { AdminMetaProvider, useAdminMeta } from './providers/AdminMeta';
+import { HooksProvider } from './providers/Hooks';
 
 import InvalidRoutePage from './pages/InvalidRoute';
 import SignoutPage from './pages/Signout';
@@ -24,28 +24,29 @@ import SigninPage from './pages/Signin';
 */
 
 const Keystone = () => {
-  const { authStrategy, apiPath, signoutPath } = useAdminMeta();
+  const { authStrategy, apiPath, signoutPath, hooks } = useAdminMeta();
 
-  const apolloClient = useMemo(() => new ApolloClient({ uri: apiPath }), [apiPath]);
+  const apolloClient = useMemo(() => initApolloClient({ uri: apiPath }), [apiPath]);
 
   return (
-    <ApolloProvider client={apolloClient}>
-      <ToastProvider>
-        <ConnectivityListener />
-        <Global styles={globalStyles} />
+    <HooksProvider hooks={hooks}>
+      <ApolloProvider client={apolloClient}>
+        <ToastProvider>
+          <Global styles={globalStyles} />
 
-        {authStrategy ? (
-          <BrowserRouter>
-            <Switch>
-              <Route exact path={signoutPath} render={() => <SignoutPage />} />
-              <Route render={() => <SigninPage />} />
-            </Switch>
-          </BrowserRouter>
-        ) : (
-          <InvalidRoutePage />
-        )}
-      </ToastProvider>
-    </ApolloProvider>
+          {authStrategy ? (
+            <BrowserRouter>
+              <Switch>
+                <Route exact path={signoutPath} children={<SignoutPage />} />
+                <Route children={<SigninPage />} />
+              </Switch>
+            </BrowserRouter>
+          ) : (
+            <InvalidRoutePage />
+          )}
+        </ToastProvider>
+      </ApolloProvider>
+    </HooksProvider>
   );
 };
 

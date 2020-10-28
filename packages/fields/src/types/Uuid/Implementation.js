@@ -1,6 +1,7 @@
 import { Implementation } from '../../Implementation';
 import { MongooseFieldAdapter } from '@keystonejs/adapter-mongoose';
 import { KnexFieldAdapter } from '@keystonejs/adapter-knex';
+import { PrismaFieldAdapter } from '@keystonejs/adapter-prisma';
 
 export class UuidImplementation extends Implementation {
   constructor(path, { caseTo = 'lower' }) {
@@ -8,15 +9,19 @@ export class UuidImplementation extends Implementation {
 
     this.normaliseValue = a => a;
     if (caseTo && caseTo.toString().toLowerCase() === 'upper') {
-      this.normaliseValue = a => a.toString().toUpperCase();
+      this.normaliseValue = a => a && a.toString().toUpperCase();
     } else if (caseTo && caseTo.toString().toLowerCase() === 'lower') {
-      this.normaliseValue = a => a.toString().toLowerCase();
+      this.normaliseValue = a => a && a.toString().toLowerCase();
     }
     this.isOrderable = true;
   }
 
+  get _supportsUnique() {
+    return true;
+  }
+
   gqlOutputFields() {
-    return [`${this.path}: ID`];
+    return [`${this.path}: ID${this.isPrimaryKey ? '!' : ''}`];
   }
   gqlOutputFieldResolvers() {
     return { [`${this.path}`]: item => item[this.path] };
@@ -24,10 +29,10 @@ export class UuidImplementation extends Implementation {
   gqlQueryInputFields() {
     return [...this.equalityInputFields('ID'), ...this.inInputFields('ID')];
   }
-  get gqlUpdateInputFields() {
+  gqlUpdateInputFields() {
     return [`${this.path}: ID`];
   }
-  get gqlCreateInputFields() {
+  gqlCreateInputFields() {
     return [`${this.path}: ID`];
   }
 }
@@ -52,15 +57,22 @@ export class MongoUuidInterface extends MongooseFieldAdapter {
   setupHooks({ addPreSaveHook, addPostReadHook }) {
     // TODO: Remove the need to dereference the list and field to get the normalise function
     addPreSaveHook(item => {
-      const valType = typeof item[this.path];
+      // Only run the hook if the item actually contains the field
+      // NOTE: Can't use hasOwnProperty here, as the mongoose data object
+      // returned isn't a POJO
+      if (!(this.path in item)) {
+        return item;
+      }
 
-      if (item[this.path] && valType === 'string') {
-        item[this.path] = this.field.normaliseValue(item[this.path]);
-      } else if (!item[this.path] || valType === 'undefined') {
-        delete item[this.path];
+      if (item[this.path]) {
+        if (typeof item[this.path] === 'string') {
+          item[this.path] = this.field.normaliseValue(item[this.path]);
+        } else {
+          // Should have been caught by the validator??
+          throw `Invalid UUID value given for '${this.path}'`;
+        }
       } else {
-        // Should have been caught by the validator??
-        throw `Invalid UUID value given for '${this.path}'`;
+        item[this.path] = null;
       }
 
       return item;
@@ -107,14 +119,39 @@ export class KnexUuidInterface extends KnexFieldAdapter {
 
   addToForeignTableSchema(table, { path, isUnique, isIndexed, isNotNullable }) {
     if (!this.field.isPrimaryKey) {
-      throw `Can't create foreign key '${path}' on table "${table._tableName}"; ` +
-        `'${this.path}' on list '${this.field.listKey}' as is not the primary key.`;
+      throw (
+        `Can't create foreign key '${path}' on table "${table._tableName}"; ` +
+        `'${this.path}' on list '${this.field.listKey}' as is not the primary key.`
+      );
     }
 
     const column = table.uuid(path);
     if (isUnique) column.unique();
     else if (isIndexed) column.index();
     if (isNotNullable) column.notNullable();
+  }
+
+  getQueryConditions(dbPath) {
+    return {
+      ...this.equalityConditions(dbPath, this.field.normaliseValue),
+      ...this.inConditions(dbPath, this.field.normaliseValue),
+    };
+  }
+}
+
+export class PrismaUuidInterface extends PrismaFieldAdapter {
+  constructor() {
+    super(...arguments);
+
+    // TODO: Warning on invalid config for primary keys?
+    if (!this.field.isPrimaryKey) {
+      this.isUnique = !!this.config.isUnique;
+      this.isIndexed = !!this.config.isIndexed && !this.config.isUnique;
+    }
+  }
+
+  getPrismaSchema() {
+    return [this._schemaField({ type: 'String' })];
   }
 
   getQueryConditions(dbPath) {

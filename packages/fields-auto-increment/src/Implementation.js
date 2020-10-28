@@ -1,27 +1,35 @@
 import { Implementation } from '@keystonejs/fields';
 import { KnexFieldAdapter } from '@keystonejs/adapter-knex';
+import { PrismaFieldAdapter } from '@keystonejs/adapter-prisma';
 
 export class AutoIncrementImplementation extends Implementation {
-  constructor(path, config = {}, context = {}) {
+  constructor(path, { gqlType, isUnique = true, access = {}, ...config } = {}, context = {}) {
     // Apply some field type defaults before we hand off to super; see README.md
-    if (typeof config.isUnique === 'undefined') config.isUnique = true;
-    if (typeof config.access === 'undefined') config.access = {};
-    if (typeof config.access === 'object') {
-      config.access = { create: false, update: false, delete: false, ...config.access };
+    if (typeof access === 'object') {
+      access = { create: false, update: false, delete: false, ...access };
     }
 
     // The base implementation takes care of everything else
-    super(path, config, context);
+    super(
+      path,
+      {
+        ...config,
+        isUnique,
+        access,
+      },
+      context
+    );
 
     // If no valid gqlType is supplied, default based on whether or not we're the primary key
-    const gqlTypeDefault = this.isPrimaryKey ? 'ID' : 'Int';
-    this.gqlType = ['ID', 'Int'].includes(this.config.gqlType)
-      ? this.config.gqlType
-      : gqlTypeDefault;
+    this.gqlType = ['ID', 'Int'].includes(gqlType) ? gqlType : this.isPrimaryKey ? 'ID' : 'Int';
+  }
+
+  get _supportsUnique() {
+    return true;
   }
 
   gqlOutputFields() {
-    return [`${this.path}: ${this.gqlType}`];
+    return [`${this.path}: ${this.gqlType}${this.isPrimaryKey ? '!' : ''}`];
   }
   gqlOutputFieldResolvers() {
     return { [`${this.path}`]: item => item[this.path] };
@@ -33,10 +41,10 @@ export class AutoIncrementImplementation extends Implementation {
       ...this.inInputFields(this.gqlType),
     ];
   }
-  get gqlUpdateInputFields() {
+  gqlUpdateInputFields() {
     return [`${this.path}: ${this.gqlType}`];
   }
-  get gqlCreateInputFields() {
+  gqlCreateInputFields() {
     return [`${this.path}: ${this.gqlType}`];
   }
 }
@@ -76,8 +84,10 @@ export class KnexAutoIncrementInterface extends KnexFieldAdapter {
 
   addToForeignTableSchema(table, { path, isUnique, isIndexed, isNotNullable }) {
     if (!this.field.isPrimaryKey) {
-      throw `Can't create foreign key '${path}' on table "${table._tableName}"; ` +
-        `'${this.path}' on list '${this.field.listKey}' as is not the primary key.`;
+      throw (
+        `Can't create foreign key '${path}' on table "${table._tableName}"; ` +
+        `'${this.path}' on list '${this.field.listKey}' as is not the primary key.`
+      );
     }
 
     const column = table.integer(path).unsigned();
@@ -91,6 +101,55 @@ export class KnexAutoIncrementInterface extends KnexFieldAdapter {
       ...this.equalityConditions(dbPath),
       ...this.orderingConditions(dbPath),
       ...this.inConditions(dbPath),
+    };
+  }
+}
+
+export class PrismaAutoIncrementInterface extends PrismaFieldAdapter {
+  constructor() {
+    super(...arguments);
+
+    // Default isUnique to true if not specified
+    this.isUnique = typeof this.config.isUnique === 'undefined' ? true : !!this.config.isUnique;
+    this.isIndexed = !!this.config.isIndexed && !this.config.isUnique;
+  }
+
+  getPrismaSchema() {
+    return [this._schemaField({ type: 'Int', extra: '@default(autoincrement())' })];
+  }
+
+  gqlToPrisma(value) {
+    // If we're an ID type then we'll be getting strings from GQL
+    return Number(value);
+    // console.log(this.field.gqlType);
+    // return this.field.gqlType === 'ID' ? Number(value) : value;
+  }
+
+  equalityConditions(dbPath, f) {
+    return {
+      [this.path]: value => ({ [dbPath]: f(value) }),
+      [`${this.path}_not`]: value => ({ NOT: { [this.path]: f(value) } }),
+    };
+  }
+
+  inConditions(dbPath, f) {
+    return {
+      [`${this.path}_in`]: value =>
+        value.includes(null)
+          ? { [dbPath]: { in: f(value.filter(x => x !== null)) } }
+          : { [dbPath]: { in: f(value) } },
+      [`${this.path}_not_in`]: value =>
+        value.includes(null)
+          ? { AND: [{ NOT: { [dbPath]: { in: f(value.filter(x => x !== null)) } } }] }
+          : { NOT: { [dbPath]: { in: f(value) } } },
+    };
+  }
+
+  getQueryConditions(dbPath) {
+    return {
+      ...this.equalityConditions(dbPath, x => Number(x) || -1),
+      ...this.orderingConditions(dbPath, x => Number(x) || -1),
+      ...this.inConditions(dbPath, x => x.map(xx => Number(xx) || -1)),
     };
   }
 }

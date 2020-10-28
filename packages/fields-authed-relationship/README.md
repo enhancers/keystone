@@ -16,9 +16,12 @@ Great for setting fields like `Post.author` or `Product.owner`, etc.
 ### Basic
 
 ```js
+const { AuthedRelationship } = require('@keystonejs/fields-authed-relationship');
+const { Text } = require('@keystonejs/fields');
+
 keystone.createList('User', {
   fields: {
-    name: { type: String },
+    name: { type: Text },
   },
 });
 
@@ -38,9 +41,12 @@ keystone.createList('Post', {
 This example allows "admins" to overwrite the value
 
 ```js
+const { AuthedRelationship } = require('@keystonejs/fields-authed-relationship');
+const { Checkbox, Text } = require('@keystonejs/fields');
+
 keystone.createList('User', {
   fields: {
-    name: { type: String },
+    name: { type: Text },
     isAdmin: { type: Checkbox, default: false },
   },
 });

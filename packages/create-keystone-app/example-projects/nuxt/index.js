@@ -7,11 +7,11 @@ const { NuxtApp } = require('@keystonejs/app-nuxt');
 /* keystone-cli: generated-code */
 const { MongooseAdapter: Adapter } = require('@keystonejs/adapter-mongoose');
 const PROJECT_NAME = 'Nuxt';
+const adapterConfig = {};
 /* /keystone-cli: generated-code */
 
 const keystone = new Keystone({
-  name: PROJECT_NAME,
-  adapter: new Adapter(),
+  adapter: new Adapter(adapterConfig),
 });
 
 keystone.createList('Todo', {
@@ -25,7 +25,7 @@ module.exports = {
   keystone,
   apps: [
     new GraphQLApp(),
-    new AdminUIApp(),
+    new AdminUIApp({ name: PROJECT_NAME }),
     new NuxtApp({
       srcDir: 'src',
       buildDir: 'dist',

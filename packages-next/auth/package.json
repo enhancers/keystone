@@ -1,0 +1,38 @@
+{
+  "name": "@keystone-spike/auth",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "main": "dist/auth.cjs.js",
+  "module": "dist/auth.esm.js",
+  "engines": {
+    "node": ">=10.0.0"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.12.1",
+    "@keystone-spike/fields": "*",
+    "@keystone-spike/types": "*",
+    "@keystone-ui/button": "*",
+    "@keystone-ui/core": "*",
+    "@keystone-ui/fields": "*",
+    "@keystone-ui/notice": "*",
+    "graphql": "^15.4.0"
+  },
+  "devDependencies": {
+    "@keystone-spike/admin-ui": "*",
+    "@keystone-spike/keystone": "*",
+    "react": "^16.14.0"
+  },
+  "peerDependencies": {
+    "@keystone-spike/admin-ui": "*",
+    "@keystone-spike/keystone": "*",
+    "react": "^16.14.0"
+  },
+  "preconstruct": {
+    "entrypoints": [
+      "index.ts",
+      "pages/*.tsx"
+    ]
+  },
+  "repository": "https://github.com/keystonejs/keystone/tree/master/packages-next/auth"
+}

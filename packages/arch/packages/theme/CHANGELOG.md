@@ -1,5 +1,11 @@
 # @arch-ui/theme
 
+## 0.0.11
+
+### Patch Changes
+
+- [`0fc878fa9`](https://github.com/keystonejs/keystone/commit/0fc878fa918c3196196f943f195ffaa62fce504b) [#3439](https://github.com/keystonejs/keystone/pull/3439) Thanks [@renovate](https://github.com/apps/renovate)! - Updated babel dependencies.
+
 ## 0.0.10
 
 ### Patch Changes
@@ -37,7 +43,7 @@
 
 ### Patch Changes
 
-- [19fe6c1b](https://github.com/keystonejs/keystone-5/commit/19fe6c1b):
+- [19fe6c1b](https://github.com/keystonejs/keystone/commit/19fe6c1b):
 
   Move frontmatter in docs into comments
 
@@ -45,13 +51,13 @@
 
 ### Patch Changes
 
-- [81dc0be5](https://github.com/keystonejs/keystone-5/commit/81dc0be5):
+- [81dc0be5](https://github.com/keystonejs/keystone/commit/81dc0be5):
 
   - Update dependencies
 
 ## 0.0.3
 
-- [patch][e75c105c](https://github.com/keystonejs/keystone-5/commit/e75c105c):
+- [patch][e75c105c](https://github.com/keystonejs/keystone/commit/e75c105c):
 
   - admin revamp
 

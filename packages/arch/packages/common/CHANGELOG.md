@@ -1,5 +1,12 @@
 # @arch-ui/common
 
+## 0.0.12
+
+### Patch Changes
+
+- Updated dependencies [[`0fc878fa9`](https://github.com/keystonejs/keystone/commit/0fc878fa918c3196196f943f195ffaa62fce504b)]:
+  - @arch-ui/theme@0.0.11
+
 ## 0.0.11
 
 ### Patch Changes
@@ -41,25 +48,25 @@
 
 ## 0.0.6
 
-- Updated dependencies [19fe6c1b](https://github.com/keystonejs/keystone-5/commit/19fe6c1b):
+- Updated dependencies [19fe6c1b](https://github.com/keystonejs/keystone/commit/19fe6c1b):
   - @arch-ui/theme@0.0.5
 
 ## 0.0.5
 
 ### Patch Changes
 
-- [d580c298](https://github.com/keystonejs/keystone-5/commit/d580c298):
+- [d580c298](https://github.com/keystonejs/keystone/commit/d580c298):
 
   Minor Admin UI Tweaks
 
 ## 0.0.4
 
-- Updated dependencies [81dc0be5](https://github.com/keystonejs/keystone-5/commit/81dc0be5):
+- Updated dependencies [81dc0be5](https://github.com/keystonejs/keystone/commit/81dc0be5):
   - @arch-ui/theme@0.0.4
 
 ## 0.0.3
 
-- [patch][e75c105c](https://github.com/keystonejs/keystone-5/commit/e75c105c):
+- [patch][e75c105c](https://github.com/keystonejs/keystone/commit/e75c105c):
 
   - admin revamp
 

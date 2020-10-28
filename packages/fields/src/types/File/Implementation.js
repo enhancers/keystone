@@ -1,45 +1,32 @@
 import { Implementation } from '../../Implementation';
 import { MongooseFieldAdapter } from '@keystonejs/adapter-mongoose';
 import { KnexFieldAdapter } from '@keystonejs/adapter-knex';
+import { PrismaFieldAdapter } from '@keystonejs/adapter-prisma';
 import mongoose from 'mongoose';
 
 // Disabling the getter of mongoose >= 5.1.0
-// https://github.com/Automattic/mongoose/blob/master/migrating_to_5.md#checking-if-a-path-is-populated
+// https://mongoosejs.com/docs/migrating_to_5.html#id-getter
 mongoose.set('objectIdGetter', false);
 
-const {
-  Types: { ObjectId },
-} = mongoose;
-
 export class File extends Implementation {
-  constructor(path, { directory, route, adapter }) {
+  constructor(path, { adapter }) {
     super(...arguments);
     this.graphQLOutputType = 'File';
-    this.directory = directory;
-    this.route = route;
     this.fileAdapter = adapter;
 
     if (!this.fileAdapter) {
       throw new Error(`No file adapter provided for File field.`);
     }
   }
+  get _supportsUnique() {
+    return false;
+  }
 
   gqlOutputFields() {
     return [`${this.path}: ${this.graphQLOutputType}`];
   }
-  extendAdminMeta(meta) {
-    return {
-      ...meta,
-      directory: this.directory,
-      route: this.route,
-    };
-  }
   gqlQueryInputFields() {
-    return [
-      ...this.equalityInputFields('String'),
-      ...this.stringInputFields('String'),
-      ...this.inInputFields('String'),
-    ];
+    return [...this.equalityInputFields('String'), ...this.inInputFields('String')];
   }
   getFileUploadType() {
     return 'Upload';
@@ -67,10 +54,6 @@ export class File extends Implementation {
         if (!itemValues) {
           return null;
         }
-
-        // FIXME: This can hopefully be removed once graphql 14.1.0 is released.
-        // https://github.com/graphql/graphql-js/pull/1520
-        if (itemValues.id) itemValues.id = itemValues.id.toString();
 
         return {
           publicUrl: this.fileAdapter.publicUrl(itemValues),
@@ -109,7 +92,7 @@ export class File extends Implementation {
       return previousData;
     }
 
-    const newId = new ObjectId();
+    const newId = new mongoose.Types.ObjectId();
 
     const { id, filename, _meta } = await this.fileAdapter.save({
       stream,
@@ -122,10 +105,10 @@ export class File extends Implementation {
     return { id, filename, originalFilename, mimetype, encoding, _meta };
   }
 
-  get gqlUpdateInputFields() {
+  gqlUpdateInputFields() {
     return [`${this.path}: ${this.getFileUploadType()}`];
   }
-  get gqlCreateInputFields() {
+  gqlCreateInputFields() {
     return [`${this.path}: ${this.getFileUploadType()}`];
   }
 }
@@ -135,7 +118,6 @@ const CommonFileInterface = superclass =>
     getQueryConditions(dbPath) {
       return {
         ...this.equalityConditions(dbPath),
-        ...this.stringConditions(dbPath),
         ...this.inConditions(dbPath),
       };
     }
@@ -145,10 +127,12 @@ export class MongoFileInterface extends CommonFileInterface(MongooseFieldAdapter
   addToMongooseSchema(schema) {
     const schemaOptions = {
       type: {
-        id: ObjectId,
+        id: mongoose.Types.ObjectId,
         path: String,
         filename: String,
+        originalFilename: String,
         mimetype: String,
+        encoding: String,
         _meta: Object,
       },
     };
@@ -162,9 +146,11 @@ export class KnexFileInterface extends CommonFileInterface(KnexFieldAdapter) {
 
     // Error rather than ignoring invalid config
     // We totally can index these values, it's just not trivial. See issue #1297
-    if (this.config.isUnique || this.config.isIndexed) {
-      throw `The File field type doesn't support indexes on Knex. ` +
-        `Check the config for ${this.path} on the ${this.field.listKey} list`;
+    if (this.config.isIndexed) {
+      throw (
+        `The File field type doesn't support indexes on Knex. ` +
+        `Check the config for ${this.path} on the ${this.field.listKey} list`
+      );
     }
   }
 
@@ -172,5 +158,23 @@ export class KnexFileInterface extends CommonFileInterface(KnexFieldAdapter) {
     const column = table.jsonb(this.path);
     if (this.isNotNullable) column.notNullable();
     if (this.defaultTo) column.defaultTo(this.defaultTo);
+  }
+}
+
+export class PrismaFileInterface extends CommonFileInterface(PrismaFieldAdapter) {
+  constructor() {
+    super(...arguments);
+
+    // Error rather than ignoring invalid config
+    // We totally can index these values, it's just not trivial. See issue #1297
+    if (this.config.isIndexed) {
+      throw (
+        `The File field type doesn't support indexes on Prisma. ` +
+        `Check the config for ${this.path} on the ${this.field.listKey} list`
+      );
+    }
+  }
+  getPrismaSchema() {
+    return [this._schemaField({ type: 'Json' })];
   }
 }

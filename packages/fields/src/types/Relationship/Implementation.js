@@ -1,16 +1,10 @@
 import mongoose from 'mongoose';
 import { MongooseFieldAdapter } from '@keystonejs/adapter-mongoose';
 import { KnexFieldAdapter } from '@keystonejs/adapter-knex';
-
-const {
-  Schema: {
-    Types: { ObjectId },
-  },
-} = mongoose;
+import { PrismaFieldAdapter } from '@keystonejs/adapter-prisma';
 
 import { Implementation } from '../../Implementation';
 import { resolveNested } from './nested-mutations';
-import { enqueueBacklinkOperations } from './backlinks';
 
 export class Relationship extends Implementation {
   constructor(path, { ref, many, withMeta }) {
@@ -25,6 +19,10 @@ export class Relationship extends Implementation {
     this.isRelationship = true;
     this.many = many;
     this.withMeta = typeof withMeta !== 'undefined' ? withMeta : true;
+  }
+
+  get _supportsUnique() {
+    return true;
   }
 
   tryResolveRefList() {
@@ -61,12 +59,12 @@ export class Relationship extends Implementation {
     if (this.many) {
       const filterArgs = refList.getGraphqlFilterFragment().join('\n');
       return [
-        `${this.path}(${filterArgs}): [${refList.gqlNames.outputTypeName}]`,
+        `${this.path}(${filterArgs}): [${refList.gqlNames.outputTypeName}!]!`,
         this.withMeta ? `_${this.path}Meta(${filterArgs}): _QueryMeta` : '',
       ];
+    } else {
+      return [`${this.path}: ${refList.gqlNames.outputTypeName}`];
     }
-
-    return [`${this.path}: ${refList.gqlNames.outputTypeName}`];
   }
 
   extendAdminMeta(meta) {
@@ -90,8 +88,6 @@ export class Relationship extends Implementation {
         ${this.path}_some: ${refList.gqlNames.whereInputName}`,
         `""" condition must be false for all nodes """
         ${this.path}_none: ${refList.gqlNames.whereInputName}`,
-        `""" is the relation field null """
-        ${this.path}_is_null: Boolean`,
       ];
     } else {
       return [`${this.path}: ${refList.gqlNames.whereInputName}`, `${this.path}_is_null: Boolean`];
@@ -106,15 +102,35 @@ export class Relationship extends Implementation {
       return [];
     }
 
-    // to-one relationships are much easier to deal with.
-    if (!this.many) {
+    if (this.many) {
+      return {
+        [this.path]: (item, args, context, info) => {
+          return refList.listQuery(args, context, info.fieldName, info, {
+            fromList: this.getListByKey(this.listKey),
+            fromId: item.id,
+            fromField: this.path,
+          });
+        },
+
+        ...(this.withMeta && {
+          [`_${this.path}Meta`]: (item, args, context, info) => {
+            return refList.listQueryMeta(args, context, info.fieldName, info, {
+              fromList: this.getListByKey(this.listKey),
+              fromId: item.id,
+              fromField: this.path,
+            });
+          },
+        }),
+      };
+    } else {
       return {
         [this.path]: (item, _, context, info) => {
           // No ID set, so we return null for the value
-          if (!item[this.path]) {
+          const id = item && (item[this.adapter.idPath] || (item[this.path] && item[this.path].id));
+          if (!id) {
             return null;
           }
-          const filteredQueryArgs = { where: { id: item[this.path].toString() } };
+          const filteredQueryArgs = { where: { id: id.toString() } };
           // We do a full query to ensure things like access control are applied
           return refList
             .listQuery(filteredQueryArgs, context, refList.gqlNames.listQueryName, info)
@@ -122,26 +138,6 @@ export class Relationship extends Implementation {
         },
       };
     }
-
-    return {
-      [this.path]: (item, args, context, info) => {
-        return refList.listQuery(args, context, info.fieldName, info, {
-          fromList: this.getListByKey(this.listKey),
-          fromId: item.id,
-          fromField: this.path,
-        });
-      },
-
-      ...(this.withMeta && {
-        [`_${this.path}Meta`]: (item, args, context, info) => {
-          return refList.listQueryMeta(args, context, info.fieldName, info, {
-            fromList: this.getListByKey(this.listKey),
-            fromId: item.id,
-            fromField: this.path,
-          });
-        },
-      }),
-    };
   }
 
   /**
@@ -213,7 +209,7 @@ export class Relationship extends Implementation {
         : [];
       currentValue = currentValue.map(({ id }) => id.toString());
     } else {
-      currentValue = item && item[this.path];
+      currentValue = item && (item[this.adapter.idPath] || (item[this.path] && item[this.path].id));
       currentValue = currentValue && currentValue.toString();
     }
 
@@ -228,47 +224,12 @@ export class Relationship extends Implementation {
       mutationState,
     });
 
-    // Enqueue backlink operations for the connections and disconnections
-    if (refField) {
-      enqueueBacklinkOperations(
-        { connect: [...create, ...connect], disconnect },
-        mutationState.queues,
-        getItem || Promise.resolve(item),
-        listInfo.local,
-        listInfo.foreign
-      );
-    }
-
     return { create, connect, disconnect, currentValue };
-  }
-
-  registerBacklink(data, item, mutationState) {
-    // Early out for null'd field
-    if (!data) {
-      return;
-    }
-
-    const { refList, refField } = this.tryResolveRefList();
-    if (refField) {
-      enqueueBacklinkOperations(
-        { disconnect: this.many ? data : [data] },
-        mutationState.queues,
-        Promise.resolve(item),
-        { list: this.getListByKey(this.listKey), field: this },
-        { list: refList, field: refField }
-      );
-    }
-    // TODO: Cascade _deletion_ of any related items (not just setting the
-    // reference to null)
-    // Accept a config option for cascading: https://www.prisma.io/docs/1.4/reference/service-configuration/data-modelling-(sdl)-eiroozae8u/#the-@relation-directive
-    // Beware of circular delete hooks!
   }
 
   getGqlAuxTypes({ schemaName }) {
     const { refList } = this.tryResolveRefList();
-    if (!refList.access[schemaName].update) {
-      return [];
-    }
+    const schemaAccess = refList.access[schemaName];
     // We need an input type that is specific to creating nested items when
     // creating a relationship, ie;
     //
@@ -286,60 +247,87 @@ export class Relationship extends Implementation {
     // mutation createPost() {
     //   author: { connect: { id: 'abc123' } }
     // }
-    if (this.many) {
-      return [
-        `
-        input ${refList.gqlNames.relateToManyInputName} {
-          # Provide data to create a set of new ${refList.key}. Will also connect.
-          create: [${refList.gqlNames.createInputName}]
+    if (
+      schemaAccess.read ||
+      schemaAccess.create ||
+      schemaAccess.update ||
+      schemaAccess.delete ||
+      schemaAccess.auth
+    ) {
+      const operations = [];
+      if (this.many) {
+        if (refList.access[schemaName].create) {
+          operations.push(`# Provide data to create a set of new ${refList.key}. Will also connect.
+          create: [${refList.gqlNames.createInputName}]`);
+        }
 
-          # Provide a filter to link to a set of existing ${refList.key}.
-          connect: [${refList.gqlNames.whereUniqueInputName}]
-
-          # Provide a filter to remove to a set of existing ${refList.key}.
-          disconnect: [${refList.gqlNames.whereUniqueInputName}]
-
-          # Remove all ${refList.key} in this list.
-          disconnectAll: Boolean
+        operations.push(
+          `# Provide a filter to link to a set of existing ${refList.key}.
+          connect: [${refList.gqlNames.whereUniqueInputName}]`,
+          `# Provide a filter to remove to a set of existing ${refList.key}.
+          disconnect: [${refList.gqlNames.whereUniqueInputName}]`,
+          `# Remove all ${refList.key} in this list.
+          disconnectAll: Boolean`
+        );
+        return [
+          `input ${refList.gqlNames.relateToManyInputName} {
+          ${operations.join('\n')}
         }
       `,
-      ];
-    }
+        ];
+      } else {
+        if (schemaAccess.create) {
+          operations.push(`# Provide data to create a new ${refList.key}.
+        create: ${refList.gqlNames.createInputName}`);
+        }
 
-    return [
-      `
-      input ${refList.gqlNames.relateToOneInputName} {
-        # Provide data to create a new ${refList.key}.
-        create: ${refList.gqlNames.createInputName}
-
-        # Provide a filter to link to an existing ${refList.key}.
-        connect: ${refList.gqlNames.whereUniqueInputName}
-
-        # Provide a filter to remove to an existing ${refList.key}.
-        disconnect: ${refList.gqlNames.whereUniqueInputName}
-
-        # Remove the existing ${refList.key} (if any).
-        disconnectAll: Boolean
+        operations.push(
+          `# Provide a filter to link to an existing ${refList.key}.
+        connect: ${refList.gqlNames.whereUniqueInputName}`,
+          `# Provide a filter to remove to an existing ${refList.key}.
+        disconnect: ${refList.gqlNames.whereUniqueInputName}`,
+          `# Remove the existing ${refList.key} (if any).
+        disconnectAll: Boolean`
+        );
+        return [
+          `input ${refList.gqlNames.relateToOneInputName} {
+          ${operations.join('\n')}
+        }
+      `,
+        ];
       }
-    `,
-    ];
-  }
-  get gqlUpdateInputFields() {
-    const { refList } = this.tryResolveRefList();
-    if (this.many) {
-      return [`${this.path}: ${refList.gqlNames.relateToManyInputName}`];
+    } else {
+      return [];
     }
-
-    return [`${this.path}: ${refList.gqlNames.relateToOneInputName}`];
   }
-  get gqlCreateInputFields() {
-    return this.gqlUpdateInputFields;
+  gqlUpdateInputFields({ schemaName }) {
+    const { refList } = this.tryResolveRefList();
+    const schemaAccess = refList.access[schemaName];
+    if (
+      schemaAccess.read ||
+      schemaAccess.create ||
+      schemaAccess.update ||
+      schemaAccess.delete ||
+      schemaAccess.auth
+    ) {
+      if (this.many) {
+        return [`${this.path}: ${refList.gqlNames.relateToManyInputName}`];
+      } else {
+        return [`${this.path}: ${refList.gqlNames.relateToOneInputName}`];
+      }
+    } else {
+      return [];
+    }
+  }
+  gqlCreateInputFields({ schemaName }) {
+    return this.gqlUpdateInputFields({ schemaName });
   }
 }
 
 export class MongoRelationshipInterface extends MongooseFieldAdapter {
   constructor(...args) {
     super(...args);
+    this.idPath = this.dbPath;
 
     // JM: It bugs me this is duplicated in the implementation but initialisation order makes it hard to avoid
     const [refListKey, refFieldPath] = this.config.ref.split('.');
@@ -348,18 +336,22 @@ export class MongoRelationshipInterface extends MongooseFieldAdapter {
     this.isRelationship = true;
   }
 
-  addToMongooseSchema(schema) {
-    const {
-      refListKey: ref,
-      config: { many },
-    } = this;
-    const type = many ? [ObjectId] : ObjectId;
-    const schemaOptions = { type, ref };
-    schema.add({ [this.path]: this.mergeSchemaOptions(schemaOptions, this.config) });
-  }
+  addToMongooseSchema(schema, _mongoose, rels) {
+    // If we're relating to 'many' things, we don't store ids in this table
+    if (!this.field.many) {
+      // If we're the right hand side of a 1:1 relationship, do nothing.
+      const { right, cardinality } = rels.find(
+        ({ left, right }) => left.adapter === this || (right && right.adapter === this)
+      );
+      if (cardinality === '1:1' && right && right.adapter === this) {
+        return;
+      }
 
-  getRefListAdapter() {
-    return this.getListByKey(this.refListKey).adapter;
+      // Otherwise, we're are hosting a foreign key
+      const { refListKey, config } = this;
+      const type = mongoose.Types.ObjectId;
+      schema.add({ [this.path]: this.mergeSchemaOptions({ type, ref: refListKey }, config) });
+    }
   }
 
   getQueryConditions(dbPath) {
@@ -369,17 +361,12 @@ export class MongoRelationshipInterface extends MongooseFieldAdapter {
       }),
     };
   }
-
-  supportsRelationshipQuery(query) {
-    return [this.path, `${this.path}_every`, `${this.path}_some`, `${this.path}_none`].includes(
-      query
-    );
-  }
 }
 
 export class KnexRelationshipInterface extends KnexFieldAdapter {
   constructor() {
     super(...arguments);
+    this.idPath = this.dbPath;
     this.isRelationship = true;
 
     // Default isIndexed to true if it's not explicitly provided
@@ -394,7 +381,6 @@ export class KnexRelationshipInterface extends KnexFieldAdapter {
     const [refListKey, refFieldPath] = this.config.ref.split('.');
     this.refListKey = refListKey;
     this.refFieldPath = refFieldPath;
-    this.refListId = `${refListKey}_id`;
   }
 
   // Override the isNotNullable defaulting logic; default to false, not field.isRequired
@@ -409,13 +395,16 @@ export class KnexRelationshipInterface extends KnexFieldAdapter {
       : this.knexOptions.isNotNullable));
   }
 
-  getRefListAdapter() {
-    return this.getListByKey(this.refListKey).adapter;
-  }
-
-  addToTableSchema(table) {
+  addToTableSchema(table, rels) {
     // If we're relating to 'many' things, we don't store ids in this table
     if (!this.field.many) {
+      // If we're the right hand side of a 1:1 relationship, do nothing.
+      const { right, cardinality } = rels.find(
+        ({ left, right }) => left.adapter === this || (right && right.adapter === this)
+      );
+      if (cardinality === '1:1' && right && right.adapter === this) {
+        return;
+      }
       // The foreign key needs to do this work for us; we don't know what type it is
       const refList = this.getListByKey(this.refListKey);
       const refId = refList.getPrimaryKey();
@@ -435,9 +424,31 @@ export class KnexRelationshipInterface extends KnexFieldAdapter {
         value ? b.whereNull(dbPath) : b.whereNotNull(dbPath),
     };
   }
-  supportsRelationshipQuery(query) {
-    return [this.path, `${this.path}_every`, `${this.path}_some`, `${this.path}_none`].includes(
-      query
-    );
+}
+
+export class PrismaRelationshipInterface extends PrismaFieldAdapter {
+  constructor() {
+    super(...arguments);
+    this.idPath = `${this.dbPath}Id`;
+    this.isRelationship = true;
+
+    // Default isIndexed to true if it's not explicitly provided
+    // Mutually exclusive with isUnique
+    this.isUnique = typeof this.config.isUnique === 'undefined' ? false : !!this.config.isUnique;
+    this.isIndexed =
+      typeof this.config.isIndexed === 'undefined'
+        ? !this.config.isUnique
+        : !!this.config.isIndexed;
+
+    // JM: It bugs me this is duplicated in the implementation but initialisation order makes it hard to avoid
+    const [refListKey, refFieldPath] = this.config.ref.split('.');
+    this.refListKey = refListKey;
+    this.refFieldPath = refFieldPath;
+  }
+
+  getQueryConditions(dbPath) {
+    return {
+      [`${this.path}_is_null`]: value => (value ? { [dbPath]: null } : { NOT: { [dbPath]: null } }),
+    };
   }
 }

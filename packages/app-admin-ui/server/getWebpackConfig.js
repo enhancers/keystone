@@ -4,11 +4,14 @@ const path = require('path');
 
 const { enableDevFeatures, mode } = require('./env');
 
-module.exports = function({ adminMeta, entry, outputPath }) {
+const clientDirectory = path.resolve(__dirname, '..', 'client');
+
+module.exports = function ({ adminMeta, adminViews, entry, outputPath }) {
   const templatePlugin = new HtmlWebpackPlugin({
     title: 'KeystoneJS',
     template: 'index.html',
     chunksSortMode: 'none',
+    scriptLoading: 'defer',
   });
   const environmentPlugin = new webpack.DefinePlugin({
     ENABLE_DEV_FEATURES: enableDevFeatures,
@@ -18,8 +21,10 @@ module.exports = function({ adminMeta, entry, outputPath }) {
 
   const rules = [
     {
-      test: /\.js$/,
-      exclude: [/node_modules(?!(?:\/|\\)@keystonejs(?:\/|\\)app-admin-ui)/],
+      test: /\.(js|ts|tsx)$/,
+      exclude: pathname => {
+        return pathname.includes('node_modules') && !pathname.startsWith(clientDirectory);
+      },
       use: [
         {
           loader: 'babel-loader',
@@ -44,28 +49,13 @@ module.exports = function({ adminMeta, entry, outputPath }) {
       test: /\.css$/,
       use: ['style-loader', 'css-loader'],
     },
-    // This is a workaround for a problem with graphql@0.13.x. It can be removed
-    // once we upgrade to graphql@14.0.2.
-    // https://github.com/zeit/next.js/issues/5233#issuecomment-424738510
-    {
-      test: /\.mjs$/,
-      include: /node_modules/,
-      type: 'javascript/auto',
-    },
   ];
-  if (adminMeta.lists) {
-    rules.push({
-      test: /FIELD_TYPES/,
-      use: [
-        {
-          loader: '@keystonejs/field-views-loader',
-          options: {
-            adminMeta,
-          },
-        },
-      ],
-    });
-  }
+  const { pages, hooks, listViews } = adminViews;
+  rules.push({
+    test: /FIELD_TYPES/,
+    use: [{ loader: '@keystonejs/field-views-loader', options: { pages, hooks, listViews } }],
+  });
+
   const entryPath = `./${entry}.js`;
   return {
     mode,
@@ -90,6 +80,7 @@ module.exports = function({ adminMeta, entry, outputPath }) {
       rules,
     },
     resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.json'],
       alias: {
         // we only want to bundle a single version of react
         // but we don't want to assume a consumer has the same version of react
@@ -104,6 +95,8 @@ module.exports = function({ adminMeta, entry, outputPath }) {
         // why isn't that used for react and react-dom?
         // they don't have module builds
         'react-router-dom$': path.dirname(require.resolve('react-router-dom/package.json')),
+        // we also want @apollo/client to always resolve to the same version of @apollo/client
+        '@apollo/client$': path.dirname(require.resolve('@apollo/client/package.json')),
       },
     },
   };

@@ -1,34 +1,33 @@
 <!--[meta]
 section: guides
-title: Mutation Lifecycle
+title: Mutation lifecycle
 subSection: graphql
+order: 2
 [meta]-->
 
-# Mutation Lifecycle
+# Mutation lifecycle
 
 ## Table of Contents
 
 - [Introduction](#introduction)
 
-- [Mutation Phases](#mutation-phases)
+- [Mutation phases](#mutation-phases)
 
-  - [Access Control Phase](#access-control-phase)
+  - [Access control phase](#access-control-phase)
 
-    - [1. Check List Access (create/update/delete)](#1-check-list-access-createupdatedelete)
+    - [1. Check List Access (create/update/delete/authenticate)](#1-check-list-access-createupdatedeleteauthenticate)
     - [2. Get Item(s) (update/delete)](#2-get-items-updatedelete)
     - [3. Check Field Access (create/update)](#3-check-field-access-createupdate)
 
   - [Operational Phase](#operational-phase)
 
     - [1. Resolve Defaults (create)](#1-resolve-defaults-create)
-    - [2a. Resolve Relationship (create/update)](#2a-resolve-relationship-createupdate)
-    - [2b. Register Backlinks (delete)](#2b-register-backlinks-delete)
-    - [3. Resolve Input (create/update)](#3-resolve-input-createupdate)
-    - [4. Validate Data (create/update/delete)](#4-validate-data-createupdatedelete)
-    - [5. Before Operation (create/update/delete)](#5-before-operation-createupdatedelete)
-    - [6. Database Operation (create/update/delete)](#6-database-operation-createupdatedelete)
-    - [7. Resolve Backlinks (create/update/delete)](#7-resolve-backlinks-createupdatedelete)
-    - [8. After Operation (create/update/delete)](#8-after-operation-createupdatedelete)
+    - [2. Resolve Relationship (create/update)](#2-resolve-relationship-createupdate)
+    - [3. Resolve Input (create/update/authenticate)](#3-resolve-input-createupdateauthenticate)
+    - [4. Validate Data (create/update/delete/authenticate)](#4-validate-data-createupdatedeleteauthenticate)
+    - [5. Before Operation (create/update/delete/authenticate)](#5-before-operation-createupdatedeleteauthenticate)
+    - [6. Database Operation (create/update/delete/authenticate)](#6-database-operation-createupdatedeleteauthenticate)
+    - [8. After Operation (create/update/delete/authenticate)](#8-after-operation-createupdatedeleteauthenticate)
 
 - [Summary](#summary)
 
@@ -48,25 +47,22 @@ For a `List` called `User` the GraphQL mutations would be:
   - `updateUsers`
   - `deleteUsers`
 
-Each of these mutations is implemented within KeystoneJS by a corresponding resolver, implemented as a method on the core `List` object.
+Each of these mutations is implemented within Keystone by a corresponding resolver, implemented as a method on the core `List` object.
 
-- **GraphQL mutation** → **List resolver method**
-- `createUser` → `createMutation`
-- `updateUser` → `updateMutation`
-- `deleteUser` → `deleteMutation`
-- `createUsers` → `createManyMutation`
-- `updateUsers` → `updateManyMutation`
-- `deleteUsers` → `deleteManyMutation`
+| **GraphQL mutation** |     | **List resolver method** |
+| -------------------- | --- | ------------------------ |
+| `createUser`         | →   | `createMutation`         |
+| `updateUser`         | →   | `updateMutation`         |
+| `deleteUser`         | →   | `deleteMutation`         |
+| `createUsers`        | →   | `createManyMutation`     |
+| `updateUsers`        | →   | `updateManyMutation`     |
+| `deleteUsers`        | →   | `deleteManyMutation`     |
 
-<!-- Dead links
-Please refer to the [API documentation](LINK_TODO)) for full details on how to call these mutations either from [GraphQL](LINK_TODO)) or directly from [Keystone](LINK_TODO)).
--->
-
-KeystoneJS provides [access control](/docs/guides/access-control.md) mechanisms and a [hook system](/docs/guides/hooks.md) which allows the developer to customise the behaviour of each of these mutations.
+Keystone provides [access control](/docs/guides/access-control.md) mechanisms and a [hook system](/docs/guides/hooks.md) which allows the developer to customise the behaviour of each of these mutations.
 
 This document details the lifecycle of each mutation, and how the different access control mechanisms and hooks interact.
 
-## Mutation Phases
+## Mutation phases
 
 Each mutation goes through two key phases: the _Access Control Phase_ and the _Operational Phase_.
 During the Access Control Phase the developer defined access controls are evaluated, and the target items are retrieved from the database (`update` and `delete` only).
@@ -79,21 +75,19 @@ This transaction encapsulates a database transaction, as well as any state requi
 
 This transaction is used by all the nested mutations of the operation.
 
-It is committed after the [resolve backlinks](#7-resolve-backlinks-createupdatedelete) step of the root operation.
-
 The Operational Phase for a `many` mutation consists of the the Operational Phase for the corresponding `single` mutation performed in parallel over each of the target items.
 
 Each of these `single` mutations is executed within its own transaction.
 
-As such, a `many` mutation maybe have partial success during this phase, as some of the the single mutations may succeed while others fail.
+As such, a `many` mutation maybe have partial success during this phase, as some of the single mutations may succeed while others fail.
 
-### Access Control Phase
+### Access control phase
 
 During the Access Control Phase the target items are retrieved from the database, and access control is checked to ensure that the user has permission to perform the operation.
 
 This phase will throw an `AccessDeniedError` if any of the access control checks fail. This error is returned in the `.errors` field of the GraphQL response. The Access Control Phase consists of three distinct steps.
 
-#### 1. Check List Access (`create/update/delete`)
+#### 1. Check List Access (`create/update/delete/authenticate`)
 
 The first step in all mutations is to check that the user has access to perform the required operation on the `List`.
 
@@ -143,7 +137,7 @@ Custom field types can override this behaviour by defining the method `getDefaul
 
 Relationship fields do not currently support default values.
 
-#### 2a. Resolve Relationship (`create/update`)
+#### 2. Resolve Relationship (`create/update`)
 
 The create and update mutations specify the value of relationship fields using the [nested mutation] pattern.
 
@@ -157,54 +151,34 @@ Any errors thrown by this nested `createMutation` will cause the current mutatio
 
 As well as resolving the IDs and performing any nested create mutations, this step must also track.
 
-#### 2b. Register Backlinks (`delete`)
+#### 3. Resolve Input (`create/update/authenticate`)
 
-When deleting an item with relationship fields, it is important that any backlinks to the deleted item are also removed.
-
-A backlink exists when a relationship field is configured with a `ref` attribute of the form `listRef.fieldRef`.
-
-During this step, any backlinks which need to be updated are identified and registered internally.
-
-The actual update step for these backlinks will be performed during the `Resolve backlinks` step, once all other pre-hooks and database operations have been completed on the primary target list.
-
-#### 3. Resolve Input (`create/update`)
-
-The `resolveInput` hook allows the developer to modify the incoming item before it is inserted/updated within the database.
+The `resolveInput` and `resolveAuthInput` hooks allows the developer to modify the incoming item before it is inserted/updated within the database.
 
 For full details of how and when to use this hook, please consult the [API docs](/docs/api/hooks.md).
 
-#### 4. Validate Data (`create/update/delete`)
+#### 4. Validate Data (`create/update/delete/authenticate`)
 
-The `validateInput` and `validateDelete` hooks allow the developer to specify validation rules which must be met before the data is inserted into the database.
+The `validateInput`, `validateDelete` and `validateAuthInput` hooks allow the developer to specify validation rules which must be met before the data is inserted into the database.
 
 These hooks can throw a `ValidationFailureError` when they encounter invalid data, which will terminate the operational phase.
 
 For full details of how and when to use these hooks, please consult the [API docs](/docs/api/hooks.md).
 
-#### 5. Before Operation (`create/update/delete`)
+#### 5. Before Operation (`create/update/delete/authenticate`)
 
-The `beforeChange` and `beforeDelete` hooks allows the developer to perform any operations which interact with external systems, such as external data stores, which depend on resolved and validated data.
+The `beforeChange`, `beforeDelete` and `beforeAuth` hooks allows the developer to perform any operations which interact with external systems, such as external data stores, which depend on resolved and validated data.
 
 For full details of how and when to use these hooks, please consult the [API docs](/docs/api/hooks.md).
 
-#### 6. Database Operation (`create/update/delete`)
+#### 6. Database Operation (`create/update/delete/authenticate`)
 
 The database operation is where the keystone database adapter is used to make the requested changes in the database.
+In the case of `authenticate` operations no data is modified; the auth strategy `verify` function in invoked instead.
 
-#### 7. Resolve Backlinks (`create/update/delete`)
+#### 8. After Operation (`create/update/delete/authenticate`)
 
-During this stage, all pending backlinks which need to be updated on referenced lists are resolved.
-This involves performing an `updateMutation` on the referenced list, performing either a `connect` or `disconnect` operation on the referenced relationship field.
-
-Unlike the `Resolve relationship` step, this operation will only ever nest one level deep.
-
-It can still result in either an `AccessDeniedError` or `ValidationFailureError`.
-
-As with `Resolve relationship`, the nested `AfterChange` hooks will be returned an added to the stack of deferred hooks for this mutation.
-
-#### 8. After Operation (`create/update/delete`)
-
-The `afterChange` and `afterDelete` hooks are only executed once all database operations for the mutation have been completed and the transaction has been finalised.
+The `afterChange`, `afterDelete` and `afterAuth` hooks are only executed once all database operations for the mutation have been completed and the transaction has been finalised.
 This means that the database is in a consistent state when this hook is executed.
 It also means that if there is a failure of any kind during this hook, the operation will still be considered complete, and no roll back will be performed.
 

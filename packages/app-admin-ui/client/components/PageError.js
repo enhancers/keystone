@@ -1,11 +1,11 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
 
-import { StopIcon } from '@arch-ui/icons';
+import { StopIcon } from '@primer/octicons-react';
 import { colors } from '@arch-ui/theme';
 import { Container } from '@arch-ui/layout';
 
-export default function PageError({ children, Icon, ...props }) {
+export default function PageError({ children, icon: Icon = StopIcon, ...props }) {
   return (
     <Container>
       <div
@@ -17,12 +17,9 @@ export default function PageError({ children, Icon, ...props }) {
         }}
         {...props}
       >
-        <Icon css={{ height: 48, width: 48 }} />
+        <Icon size={48} />
         {children}
       </div>
     </Container>
   );
 }
-PageError.defaultProps = {
-  Icon: StopIcon,
-};

@@ -1,6 +1,6 @@
 /** @jsx jsx */
 
-import { forwardRef } from 'react'; // eslint-disable-line no-unused-vars
+import { forwardRef } from 'react';
 import { Link } from 'gatsby';
 import { jsx } from '@emotion/core';
 import { colors, gridSize } from '@arch-ui/theme';
@@ -12,7 +12,7 @@ import { media, mediaMax, mq } from '../utils/media';
 
 export const HEADER_HEIGHT = 60;
 
-export const Header = forwardRef(({ toggleMenu, ...props }, ref) => (
+export const Header = forwardRef(({ toggleMenu, showSearch = true, ...props }, ref) => (
   <header
     ref={ref}
     css={{
@@ -65,7 +65,7 @@ export const Header = forwardRef(({ toggleMenu, ...props }, ref) => (
             flex: 1,
 
             [media.md]: {
-              paddingLeft: gridSize * 4,
+              paddingLeft: gridSize * 6,
             },
           }}
         >
@@ -78,15 +78,16 @@ export const Header = forwardRef(({ toggleMenu, ...props }, ref) => (
               },
             }}
           >
-            <Search />
+            {showSearch && <Search />}
           </div>
           <div
             css={{
+              boxSizing: 'border-box',
               display: 'flex',
               alignItems: 'center',
-              paddingLeft: gridSize * 4,
+              paddingLeft: gridSize * 6,
               paddingRight: gridSize * 3,
-              width: 240,
+              width: 280,
 
               [mediaMax.sm]: {
                 display: 'none',
