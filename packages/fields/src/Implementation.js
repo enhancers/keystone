@@ -4,13 +4,24 @@ import { parseFieldAccess } from '@keystonejs/access-control';
 class Field {
   constructor(
     path,
-    { hooks = {}, isRequired, defaultValue, access, label, schemaDoc, adminDoc, ...config },
+    {
+      hooks = {},
+      isRequired,
+      defaultValue,
+      access,
+      label,
+      schemaDoc,
+      adminDoc,
+      adminConfig,
+      ...config
+    },
     { getListByKey, listKey, listAdapter, fieldAdapterClass, defaultAccess, schemaNames }
   ) {
     this.path = path;
     this.isPrimaryKey = path === 'id';
     this.schemaDoc = schemaDoc;
     this.adminDoc = adminDoc;
+    this.adminConfig = adminConfig;
     this.config = config;
     this.isRequired = !!isRequired;
     this.defaultValue = defaultValue;
@@ -19,6 +30,12 @@ class Field {
     this.getListByKey = getListByKey;
     this.listKey = listKey;
     this.label = label || inflection.humanize(inflection.underscore(path));
+    if (this.config.isUnique && !this._supportsUnique) {
+      throw new Error(
+        `isUnique is not a supported option for field type ${this.constructor.name} (${this.path})`
+      );
+    }
+
     this.adapter = listAdapter.newFieldAdapter(
       fieldAdapterClass,
       this.constructor.name,
@@ -38,6 +55,12 @@ class Field {
       defaultAccess,
       access,
     });
+  }
+
+  // By default we assume that fields do not support unique constraints.
+  // Fields should override this method if they want to support uniqueness.
+  get _supportsUnique() {
+    return false;
   }
 
   parseFieldAccess(args) {
@@ -83,7 +106,7 @@ class Field {
     return {};
   }
 
-  /*
+  /**
    * @param {Object} data
    * @param {Object} data.resolvedData  The incoming item for the mutation with
    * relationships and defaults already resolved
@@ -93,9 +116,6 @@ class Field {
    * request
    * @param {Object} data.originalInput The raw incoming item from the mutation
    * (no relationships or defaults resolved)
-   * @param {Object} data.actions
-   * @param {Function} data.actions.query Perform a graphQl query
-   * programmatically
    */
   async resolveInput({ resolvedData }) {
     return resolvedData[this.path];
@@ -153,10 +173,10 @@ class Field {
       `${this.path}_not_ends_with_i: ${type}`,
     ];
   }
-  get gqlCreateInputFields() {
+  gqlCreateInputFields() {
     return [];
   }
-  get gqlUpdateInputFields() {
+  gqlUpdateInputFields() {
     return [];
   }
   getAdminMeta({ schemaName }) {
@@ -171,6 +191,7 @@ class Field {
       // functions
       defaultValue: typeof this.defaultValue !== 'function' ? this.defaultValue : undefined,
       isPrimaryKey: this.isPrimaryKey,
+      ...this.adminConfig,
       // NOTE: This data is serialised, so we're unable to pass through any
       // access control _functions_. But we can still check for the boolean case
       // and pass that through (we assume that if there is a function, it's a
@@ -189,10 +210,10 @@ class Field {
   extendAdminViews(views) {
     return views;
   }
-  getDefaultValue({ context, originalInput, actions }) {
+  getDefaultValue({ context, originalInput }) {
     if (typeof this.defaultValue !== 'undefined') {
       if (typeof this.defaultValue === 'function') {
-        return this.defaultValue({ context, originalInput, actions });
+        return this.defaultValue({ context, originalInput });
       } else {
         return this.defaultValue;
       }

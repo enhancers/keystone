@@ -8,7 +8,7 @@ import {
   ListOrderedIcon,
   ListUnorderedIcon,
   FileMediaIcon,
-} from '@arch-ui/icons';
+} from '@primer/octicons-react';
 
 export let getTools = cm => {
   function toggleBefore(insertion) {
@@ -18,8 +18,8 @@ export let getTools = cm => {
     if (doc.somethingSelected()) {
       let selections = doc.listSelections();
       let remove = null;
-      cm.operation(function() {
-        selections.forEach(function(selection) {
+      cm.operation(function () {
+        selections.forEach(function (selection) {
           let pos = [selection.head.line, selection.anchor.line].sort();
 
           // Remove if the first text starts with it
@@ -84,7 +84,7 @@ export let getTools = cm => {
       label: 'Italicize',
       action() {
         cm.focus();
-        this.toggleAround('*', '*');
+        toggleAround('*', '*');
       },
     },
     {

@@ -1,5 +1,186 @@
 # @arch-ui/docs
 
+## 1.1.29
+
+### Patch Changes
+
+- [`86b6f890b`](https://github.com/keystonejs/keystone/commit/86b6f890ba7f7de23c3e940df11d8cf9cad328aa) [#4018](https://github.com/keystonejs/keystone/pull/4018) Thanks [@timleslie](https://github.com/timleslie)! - Pinned all `gatsby` dependencies and some resolutions to a fixed version to prevent bumps which we know to break the website.
+
+## 1.1.28
+
+### Patch Changes
+
+- [`8aede7e1b`](https://github.com/keystonejs/keystone/commit/8aede7e1b9e2b07562b202f05409e29898736aa9) [#3676](https://github.com/keystonejs/keystone/pull/3676) Thanks [@Vultraz](https://github.com/Vultraz)! - Removed last uses of @arch-ui/icons.
+
+- Updated dependencies [[`ecbe1471f`](https://github.com/keystonejs/keystone/commit/ecbe1471fe22ca029a178a57dc216f6445b4053a), [`d7fc663c3`](https://github.com/keystonejs/keystone/commit/d7fc663c3799afd2c646cc1ad6670f8e85002093), [`aa5b4aa26`](https://github.com/keystonejs/keystone/commit/aa5b4aa269eebc6931d30f6eddc315805c1f4fef), [`b6e160678`](https://github.com/keystonejs/keystone/commit/b6e160678b449707261a54a9d565b91663784831)]:
+  - @arch-ui/dialog@0.0.24
+  - @arch-ui/dropdown@0.0.21
+  - @arch-ui/popout@0.0.22
+  - @arch-ui/button@0.0.22
+  - @arch-ui/fields@3.0.5
+  - @arch-ui/pagination@0.0.26
+  - @arch-ui/pill@0.1.18
+
+## 1.1.27
+
+### Patch Changes
+
+- Updated dependencies [[`16e4d91a2`](https://github.com/keystonejs/keystone/commit/16e4d91a20cc6a079c60ea9801381da55444b1e1)]:
+  - @arch-ui/dialog@0.0.23
+  - @arch-ui/dropdown@0.0.20
+  - @arch-ui/popout@0.0.21
+  - @arch-ui/tooltip@0.1.14
+
+## 1.1.26
+
+### Patch Changes
+
+- [`890f13834`](https://github.com/keystonejs/keystone/commit/890f1383421f4c3371e240ef1dca2eaaa808cb54) [#3449](https://github.com/keystonejs/keystone/pull/3449) Thanks [@renovate](https://github.com/apps/renovate)! - Updated dependency `@reach/router` to `^1.3.4`.
+
+* [`5935b89f8`](https://github.com/keystonejs/keystone/commit/5935b89f8862b36f14d09da68f056f759a860f3e) [#3477](https://github.com/keystonejs/keystone/pull/3477) Thanks [@Noviny](https://github.com/Noviny)! - Updating dependencies:
+
+  These changes bring the keystone dev experience inline with installing keystone from npm :D
+
+* Updated dependencies [[`6cb4476ff`](https://github.com/keystonejs/keystone/commit/6cb4476ff15923933862c1cd7d4b1ade794106c6), [`5935b89f8`](https://github.com/keystonejs/keystone/commit/5935b89f8862b36f14d09da68f056f759a860f3e), [`0fc878fa9`](https://github.com/keystonejs/keystone/commit/0fc878fa918c3196196f943f195ffaa62fce504b)]:
+  - @arch-ui/dialog@0.0.22
+  - @arch-ui/dropdown@0.0.19
+  - @arch-ui/icons@0.1.2
+  - @arch-ui/popout@0.0.20
+  - @arch-ui/alert@0.0.18
+  - @arch-ui/badge@0.0.17
+  - @arch-ui/button@0.0.21
+  - @arch-ui/controls@0.1.9
+  - @arch-ui/fields@3.0.4
+  - @arch-ui/input@0.1.11
+  - @arch-ui/layout@0.2.14
+  - @arch-ui/loading@0.0.18
+  - @arch-ui/lozenge@0.0.17
+  - @arch-ui/navbar@0.1.12
+  - @arch-ui/pagination@0.0.25
+  - @arch-ui/pill@0.1.17
+  - @arch-ui/tooltip@0.1.13
+  - @arch-ui/typography@0.0.18
+  - @arch-ui/select@0.1.9
+  - @arch-ui/theme@0.0.11
+
+## 1.1.25
+
+### Patch Changes
+
+- Updated dependencies [[`51aef1ef0`](https://github.com/keystonejs/keystone/commit/51aef1ef06a89422e89a6118b7820848d5970669)]:
+  - @arch-ui/fields@3.0.3
+  - @arch-ui/pagination@0.0.24
+  - @arch-ui/pill@0.1.16
+
+## 1.1.24
+
+### Patch Changes
+
+- Updated dependencies [[`887ad8199`](https://github.com/keystonejs/keystone/commit/887ad8199aa5c32a3db8588104f4548c90aa106c)]:
+  - @arch-ui/pagination@0.0.23
+
+## 1.1.23
+
+### Patch Changes
+
+- Updated dependencies [[`04c57fa78`](https://github.com/keystonejs/keystone/commit/04c57fa7840714d3413e093d468b78d740c95c9a), [`a8d444b25`](https://github.com/keystonejs/keystone/commit/a8d444b25109f84e9d4659f2a260c5ad65f93393), [`98bd9d8c0`](https://github.com/keystonejs/keystone/commit/98bd9d8c05971e88f46dc9c9892f6a232ddf124c)]:
+  - @arch-ui/input@0.1.10
+  - @arch-ui/fields@3.0.2
+  - @arch-ui/button@0.0.20
+  - @arch-ui/pagination@0.0.22
+
+## 1.1.22
+
+### Patch Changes
+
+- Updated dependencies [[`2b0f6441`](https://github.com/keystonejs/keystone/commit/2b0f6441e50787a4a82f417b573078717b39e9be)]:
+  - @arch-ui/button@0.0.19
+  - @arch-ui/dropdown@0.0.18
+  - @arch-ui/navbar@0.1.11
+  - @arch-ui/pagination@0.0.21
+
+## 1.1.21
+
+### Patch Changes
+
+- Updated dependencies [[`216e6dec`](https://github.com/keystonejs/keystone/commit/216e6deca2b0d9a22ddbf0657a01b5122c178269)]:
+  - @arch-ui/popout@0.0.19
+
+## 1.1.20
+
+### Patch Changes
+
+- Updated dependencies [[`95babf5d`](https://github.com/keystonejs/keystone/commit/95babf5da8488f2d7f8ab9f91ff640576462af6d), [`45b151b0`](https://github.com/keystonejs/keystone/commit/45b151b05de0583ba50364caeda8b5bb7a111385)]:
+  - @arch-ui/navbar@0.1.10
+  - @arch-ui/badge@0.0.16
+  - @arch-ui/dialog@0.0.21
+
+## 1.1.19
+
+### Patch Changes
+
+- [`577b5e69`](https://github.com/keystonejs/keystone/commit/577b5e69ac4f949d1be2a80d8f391cb0a4b1333a) [#2799](https://github.com/keystonejs/keystone/pull/2799) Thanks [@MadeByMike](https://github.com/MadeByMike)! - Upgraded React and Emotion packages.
+
+- Updated dependencies [[`577b5e69`](https://github.com/keystonejs/keystone/commit/577b5e69ac4f949d1be2a80d8f391cb0a4b1333a)]:
+  - @arch-ui/alert@0.0.17
+  - @arch-ui/badge@0.0.15
+  - @arch-ui/button@0.0.18
+  - @arch-ui/controls@0.1.8
+  - @arch-ui/dialog@0.0.20
+  - @arch-ui/dropdown@0.0.17
+  - @arch-ui/fields@3.0.1
+  - @arch-ui/icons@0.1.1
+  - @arch-ui/input@0.1.9
+  - @arch-ui/layout@0.2.13
+  - @arch-ui/loading@0.0.17
+  - @arch-ui/lozenge@0.0.16
+  - @arch-ui/navbar@0.1.9
+  - @arch-ui/pagination@0.0.20
+  - @arch-ui/pill@0.1.15
+  - @arch-ui/popout@0.0.18
+  - @arch-ui/select@0.1.8
+  - @arch-ui/tooltip@0.1.12
+  - @arch-ui/typography@0.0.17
+
+## 1.1.18
+
+### Patch Changes
+
+- Updated dependencies [[`78fda9d7`](https://github.com/keystonejs/keystone/commit/78fda9d7b9a090240c946553cc42ba0bf6b8a88c), [`732128fb`](https://github.com/keystonejs/keystone/commit/732128fb3598039cbb13b08c237fcd3c612b6621), [`e5fac4db`](https://github.com/keystonejs/keystone/commit/e5fac4db00e1d38c2271d8ca55e7e2bd86a07dfa), [`9c403c7c`](https://github.com/keystonejs/keystone/commit/9c403c7c273cc915d023bd98986d43cd4ab74477)]:
+  - @arch-ui/fields@3.0.0
+  - @arch-ui/tooltip@0.1.11
+  - @arch-ui/input@0.1.8
+  - @arch-ui/icons@0.1.0
+  - @arch-ui/pagination@0.0.19
+  - @arch-ui/pill@0.1.14
+
+## 1.1.17
+
+### Patch Changes
+
+- [`a05f2b43`](https://github.com/keystonejs/keystone/commit/a05f2b43fab6760dc17baa37eea077cbbcec80fc) [#2753](https://github.com/keystonejs/keystone/pull/2753) Thanks [@Vultraz](https://github.com/Vultraz)! - Updated remaining ArchUI style guide React components to functional ones.
+
+- Updated dependencies [[`9d862edc`](https://github.com/keystonejs/keystone/commit/9d862edc506460d4a0456e48ec418b9042b582ad), [`81822d67`](https://github.com/keystonejs/keystone/commit/81822d67822bdc77b360b709f2e824cc43d88f15), [`70f3529b`](https://github.com/keystonejs/keystone/commit/70f3529bbdb6dee76c0b278415d340c53c68530a), [`875c7df5`](https://github.com/keystonejs/keystone/commit/875c7df5873c3a5173fba1a7c3078fcd098f0a32), [`bcfa092d`](https://github.com/keystonejs/keystone/commit/bcfa092d026c0d626087e641d91b729de7c5480b)]:
+  - @arch-ui/select@0.1.7
+  - @arch-ui/controls@0.1.7
+  - @arch-ui/pagination@0.0.18
+  - @arch-ui/layout@0.2.12
+
+## 1.1.16
+
+### Patch Changes
+
+- Updated dependencies [[`63169b6a`](https://github.com/keystonejs/keystone/commit/63169b6a6b6a4dc286cd224b7f871960f2d4b0ad), [`007063c4`](https://github.com/keystonejs/keystone/commit/007063c4f17e6e7038312ed9126eaf91757e7939), [`0b37b13b`](https://github.com/keystonejs/keystone/commit/0b37b13b5b11a5391b70920f9e8cbd6c5a71f586)]:
+  - @arch-ui/alert@0.0.16
+  - @arch-ui/loading@0.0.16
+  - @arch-ui/lozenge@0.0.15
+  - @arch-ui/tooltip@0.1.10
+  - @arch-ui/typography@0.0.16
+  - @arch-ui/fields@2.1.5
+  - @arch-ui/button@0.0.17
+  - @arch-ui/pagination@0.0.17
+  - @arch-ui/dialog@0.0.19
+
 ## 1.1.15
 
 ### Patch Changes
@@ -212,41 +393,41 @@
 
 ## 1.1.5
 
-- Updated dependencies [464d7579](https://github.com/keystonejs/keystone-5/commit/464d7579):
+- Updated dependencies [464d7579](https://github.com/keystonejs/keystone/commit/464d7579):
   - @arch-ui/select@0.1.0
 
 ## 1.1.4
 
-- Updated dependencies [7689753c](https://github.com/keystonejs/keystone-5/commit/7689753c):
+- Updated dependencies [7689753c](https://github.com/keystonejs/keystone/commit/7689753c):
   - @arch-ui/controls@0.0.10
   - @arch-ui/input@0.1.0
 
 ## 1.1.3
 
-- Updated dependencies [957a40d9](https://github.com/keystonejs/keystone-5/commit/957a40d9):
+- Updated dependencies [957a40d9](https://github.com/keystonejs/keystone/commit/957a40d9):
   - @arch-ui/select@0.0.8
 
 ## 1.1.2
 
 ### Patch Changes
 
-- [42c3fbc9](https://github.com/keystonejs/keystone-5/commit/42c3fbc9): Upgrade emotion to 10.0.14
-- [42c3fbc9](https://github.com/keystonejs/keystone-5/commit/42c3fbc9): Update gatsby to 2.13.25
+- [42c3fbc9](https://github.com/keystonejs/keystone/commit/42c3fbc9): Upgrade emotion to 10.0.14
+- [42c3fbc9](https://github.com/keystonejs/keystone/commit/42c3fbc9): Update gatsby to 2.13.25
 
 ## 1.1.1
 
-- Updated dependencies [3544f852](https://github.com/keystonejs/keystone-5/commit/3544f852):
+- Updated dependencies [3544f852](https://github.com/keystonejs/keystone/commit/3544f852):
   - @arch-ui/tooltip@0.1.0
 
 ## 1.1.0
 
 ### Minor Changes
 
-- [9f4c2878](https://github.com/keystonejs/keystone-5/commit/9f4c2878):
+- [9f4c2878](https://github.com/keystonejs/keystone/commit/9f4c2878):
 
   Added 'new project', 'adding lists' and 'relationships' guides.
 
 ## 1.0.1
 
-- Updated dependencies [c2dc6eb3](https://github.com/keystonejs/keystone-5/commit/c2dc6eb3):
+- Updated dependencies [c2dc6eb3](https://github.com/keystonejs/keystone/commit/c2dc6eb3):
   - @arch-ui/navbar@0.1.0

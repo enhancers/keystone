@@ -260,11 +260,11 @@ Now, for each release we want to backport to, we follow this process:
 
 ### Build Process
 
-Some of the packages in keystone-5 need to compiled before they're published, we use [preconstruct](https://github.com/preconstruct/preconstruct) to do this.
+Some of the packages in keystone need to compiled before they're published, we use [preconstruct](https://github.com/preconstruct/preconstruct) to do this.
 
-Preconstruct reads from the `packages.json` preconstruct field for configuration, in keystone-5 all we need to do is set the packages that we need to build. Preconstruct reads all of the packages specified in the packages and checks the `main` and `module` fields and generates compiled versions. Preconstruct under the hood uses rollup to bundle all of the modules together which means people can't expose and interact with the modules (e.g. to change internals that could change in a patch version). It also results in smaller builds because rollup is better at tree shaking than webpack. Preconstruct also uses babel and reads from the babel config in the repo to compile the code, there is one important babel plugin that Preconstruct adds which is `@babel/plugin-transform-runtime` which tells babel to import the helpers that it uses in generated code from a certain place rather than duplicating them in each package.
+Preconstruct reads from the `packages.json` preconstruct field for configuration, in all we need to do is set the packages that we need to build. Preconstruct reads all of the packages specified in the packages and checks the `main` and `module` fields and generates compiled versions. Preconstruct under the hood uses rollup to bundle all of the modules together which means people can't expose and interact with the modules (e.g. to change internals that could change in a patch version). It also results in smaller builds because rollup is better at tree shaking than webpack. Preconstruct also uses babel and reads from the babel config in the repo to compile the code, there is one important babel plugin that Preconstruct adds which is `@babel/plugin-transform-runtime` which tells babel to import the helpers that it uses in generated code from a certain place rather than duplicating them in each package.
 
-Preconstruct can generate a couple different types of modules, in keystone-5, we build esm and commonjs modules.
+Preconstruct can generate a couple different types of modules, in keystone, we build esm and commonjs modules.
 
 ESM bundles are built for newer bundlers like parcel, rollup and newer versions of webpack which understand ES modules and can build more optimised bundles from them than they can with commonjs.
 
@@ -334,6 +334,15 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/gabipetrovay"><img src="https://avatars0.githubusercontent.com/u/1170398?v=4" width="80px;" alt=""/><br /><sub><b>Gabriel Petrovay</b></sub></a><br /><a href="https://github.com/keystonejs/keystone/commits?author=gabipetrovay" title="Code">💻</a> <a href="https://github.com/keystonejs/keystone/commits?author=gabipetrovay" title="Documentation">📖</a></td>
     <td align="center"><a href="https://atticus.dev"><img src="https://avatars1.githubusercontent.com/u/9361948?v=4" width="80px;" alt=""/><br /><sub><b>Liam Clarke</b></sub></a><br /><a href="https://github.com/keystonejs/keystone/commits?author=LiamAttClarke" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/wbarcovsky"><img src="https://avatars2.githubusercontent.com/u/5498761?v=4" width="80px;" alt=""/><br /><sub><b>Vladimir Barcovsky</b></sub></a><br /><a href="https://github.com/keystonejs/keystone/commits?author=wbarcovsky" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/wcalebgray"><img src="https://avatars2.githubusercontent.com/u/11668534?v=4" width="80px;" alt=""/><br /><sub><b>Caleb Gray</b></sub></a><br /><a href="https://github.com/keystonejs/keystone/commits?author=wcalebgray" title="Code">💻</a> <a href="https://github.com/keystonejs/keystone/commits?author=wcalebgray" title="Tests">⚠️</a></td>
+    <td align="center"><a href="http://hackweb.altervista.org"><img src="https://avatars0.githubusercontent.com/u/754139?v=4" width="80px;" alt=""/><br /><sub><b>frank10gm</b></sub></a><br /><a href="https://github.com/keystonejs/keystone/commits?author=frank10gm" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/mbrodt"><img src="https://avatars2.githubusercontent.com/u/21239560?v=4" width="80px;" alt=""/><br /><sub><b>mbrodt</b></sub></a><br /><a href="https://github.com/keystonejs/keystone/commits?author=mbrodt" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/zamkevich"><img src="https://avatars0.githubusercontent.com/u/13717428?v=4" width="80px;" alt=""/><br /><sub><b>Misha Zamkevich</b></sub></a><br /><a href="https://github.com/keystonejs/keystone/commits?author=zamkevich" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/matheuschimelli"><img src="https://avatars0.githubusercontent.com/u/10470074?v=4" width="80px;" alt=""/><br /><sub><b>Matheus Chimelli</b></sub></a><br /><a href="https://github.com/keystonejs/keystone/commits?author=matheuschimelli" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/gpersable"><img src="https://avatars3.githubusercontent.com/u/48637618?v=4" width="80px;" alt=""/><br /><sub><b>Gita Permatasari Sujatmiko</b></sub></a><br /><a href="https://github.com/keystonejs/keystone/commits?author=gpersable" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://elevated.to"><img src="https://avatars2.githubusercontent.com/u/203895?v=4" width="80px;" alt=""/><br /><sub><b>Andreas Borg</b></sub></a><br /><a href="https://github.com/keystonejs/keystone/commits?author=borg" title="Documentation">📖</a></td>
   </tr>
 </table>
 

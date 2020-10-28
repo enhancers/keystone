@@ -1,37 +1,61 @@
+const path = require('path');
+const crypto = require('crypto');
 const express = require('express');
 const supertest = require('supertest-light');
-const MongoDBMemoryServer = require('mongodb-memory-server').default;
-const pFinally = require('p-finally');
+const MongoDBMemoryServer = require('mongodb-memory-server-core').default;
 const url = require('url');
 const { Keystone } = require('@keystonejs/keystone');
 const { GraphQLApp } = require('@keystonejs/app-graphql');
 const { KnexAdapter } = require('@keystonejs/adapter-knex');
 const { MongooseAdapter } = require('@keystonejs/adapter-mongoose');
+const { PrismaAdapter } = require('@keystonejs/adapter-prisma');
 
 async function setupServer({
-  name,
   adapterName,
-  schemaName = 'testing',
-  schemaNames = ['testing'],
+  schemaName = 'public',
+  schemaNames = ['public'],
   createLists = () => {},
   keystoneOptions,
   graphqlOptions = {},
 }) {
-  const Adapter = { mongoose: MongooseAdapter, knex: KnexAdapter }[adapterName];
+  const Adapter = {
+    mongoose: MongooseAdapter,
+    knex: KnexAdapter,
+    prisma_postgresql: PrismaAdapter,
+  }[adapterName];
 
   const argGenerator = {
     mongoose: getMongoMemoryServerConfig,
     knex: () => ({
       dropDatabase: true,
-      knexOptions: { connection: process.env.KNEX_URI || 'postgres://localhost/keystone' },
+      knexOptions: {
+        connection:
+          process.env.DATABASE_URL || process.env.KNEX_URI || 'postgres://localhost/keystone',
+      },
+    }),
+    prisma_postgresql: () => ({
+      dropDatabase: true,
+      url: process.env.DATABASE_URL,
+      provider: 'postgresql',
+      // Put the generated client at a unique path
+      getPrismaPath: ({ prismaSchema }) =>
+        path.join(
+          '.api-test-prisma-clients',
+          crypto.createHash('sha256').update(prismaSchema).digest('hex')
+        ),
+      // Slice down to the hash make a valid postgres schema name
+      getDbSchemaName: ({ prismaSchema }) =>
+        crypto.createHash('sha256').update(prismaSchema).digest('hex').slice(0, 16),
+      // Turn this on if you need verbose debug info
+      enableLogging: false,
     }),
   }[adapterName];
 
   const keystone = new Keystone({
-    name,
     adapter: new Adapter(await argGenerator()),
     defaultAccess: { list: true, field: true },
     schemaNames,
+    cookieSecret: 'secretForTesting',
     ...keystoneOptions,
   });
 
@@ -58,13 +82,6 @@ async function setupServer({
   app.use(middlewares);
 
   return { keystone, app };
-}
-
-function graphqlRequest({ keystone, query, variables, operationName }) {
-  return keystone.executeQuery(query, {
-    variables,
-    operationName,
-  });
 }
 
 function networkedGraphqlRequest({
@@ -104,10 +121,7 @@ async function getMongoMemoryServerConfig() {
   // Passing `true` here generates a new, random DB name for us
   const mongoUri = await mongoServer.getConnectionString(true);
   // In theory the dbName can contain query params so lets parse it then extract the db name
-  const dbName = url
-    .parse(mongoUri)
-    .pathname.split('/')
-    .pop();
+  const dbName = url.parse(mongoUri).pathname.split('/').pop();
 
   return { mongoUri, dbName };
 }
@@ -130,29 +144,9 @@ function teardownMongoMemoryServer() {
   return stopping;
 }
 
-function getCreate(keystone) {
-  return (list, item) => keystone.getListByKey(list).adapter.create(item);
-}
-
-function getFindById(keystone) {
-  return (list, item) => keystone.getListByKey(list).adapter.findById(item);
-}
-
-function getFindOne(keystone) {
-  return (list, item) => keystone.getListByKey(list).adapter.findOne(item);
-}
-
-function getUpdate(keystone) {
-  return (list, id, data) => keystone.getListByKey(list).adapter.update(id, data);
-}
-
-function getDelete(keystone) {
-  return (list, id) => keystone.getListByKey(list).adapter.delete(id);
-}
-
 function _keystoneRunner(adapterName, tearDownFunction) {
-  return function(setupKeystoneFn, testFn) {
-    return async function() {
+  return function (setupKeystoneFn, testFn) {
+    return async function () {
       if (!testFn) {
         // If a testFn is not defined then we just need
         // to excute setup and tear down in isolation.
@@ -169,60 +163,56 @@ function _keystoneRunner(adapterName, tearDownFunction) {
 
       await keystone.connect();
 
-      return pFinally(
-        testFn({
-          ...setup,
-          create: getCreate(keystone),
-          findById: getFindById(keystone),
-          findOne: getFindOne(keystone),
-          update: getUpdate(keystone),
-          delete: getDelete(keystone),
-        }),
-        () => keystone.disconnect().then(tearDownFunction)
-      );
+      try {
+        await testFn(setup);
+      } finally {
+        await keystone.disconnect();
+        await tearDownFunction();
+      }
     };
   };
 }
 
-function multiAdapterRunners(only) {
-  return [
-    { runner: _keystoneRunner('mongoose', teardownMongoMemoryServer), adapterName: 'mongoose' },
-    { runner: _keystoneRunner('knex', () => {}), adapterName: 'knex' },
-  ].filter(a => typeof only === 'undefined' || a.adapterName === only);
+function _before(adapterName) {
+  return async function (setupKeystone) {
+    const { keystone, app } = await setupKeystone(adapterName);
+    await keystone.connect();
+    return { keystone, app };
+  };
 }
 
-const sorted = (arr, keyFn) => {
-  arr = [...arr];
-  arr.sort((a, b) => {
-    a = keyFn(a);
-    b = keyFn(b);
-    if (a < b) {
-      return -1;
-    }
-    if (a > b) {
-      return 1;
-    }
-    return 0;
-  });
-  return arr;
-};
+function _after(tearDownFunction) {
+  return async function (keystone) {
+    await keystone.disconnect();
+    await tearDownFunction();
+  };
+}
 
-const matchFilter = ({ keystone, queryArgs, fieldSelection, expected, sortKey }) => {
-  return graphqlRequest({
-    keystone,
-    query: `query {
-      allTests${queryArgs ? `(${queryArgs})` : ''} { ${fieldSelection} }
-    }`,
-  }).then(({ data }) => {
-    const value = sortKey ? sorted(data.allTests || [], i => i[sortKey]) : data.allTests;
-    expect(value).toEqual(expected);
-  });
-};
+function multiAdapterRunners(only = process.env.TEST_ADAPTER) {
+  return [
+    {
+      runner: _keystoneRunner('mongoose', teardownMongoMemoryServer),
+      adapterName: 'mongoose',
+      before: _before('mongoose'),
+      after: _after(teardownMongoMemoryServer),
+    },
+    {
+      runner: _keystoneRunner('knex', () => {}),
+      adapterName: 'knex',
+      before: _before('knex'),
+      after: _after(() => {}),
+    },
+    {
+      runner: _keystoneRunner('prisma_postgresql', () => {}),
+      adapterName: 'prisma_postgresql',
+      before: _before('prisma_postgresql'),
+      after: _after(() => {}),
+    },
+  ].filter(a => typeof only === 'undefined' || a.adapterName === only);
+}
 
 module.exports = {
   setupServer,
   multiAdapterRunners,
-  graphqlRequest,
   networkedGraphqlRequest,
-  matchFilter,
 };

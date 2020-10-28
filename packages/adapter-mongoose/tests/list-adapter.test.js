@@ -54,11 +54,11 @@ describe('MongooseListAdapter', () => {
       {
         isRelationship: true,
         getQueryConditions: () => {},
-        supportsRelationshipQuery: query => query === 'posts_some',
-        getRefListAdapter: () => postListAdapter,
+        getListByKey: () => ({ adapter: postListAdapter }),
         field: { config: { many: true }, many: true },
         path: 'posts',
         dbPath: 'posts',
+        rel: { cardinality: '1:N', tableName: 'Post', columnName: 'author' },
       },
     ];
 
@@ -70,9 +70,9 @@ describe('MongooseListAdapter', () => {
         $lookup: {
           as: expect.any(String),
           from: 'posts',
-          let: expect.any(Object),
+          let: { tmpVar: '$_id' },
           pipeline: [
-            { $match: { $expr: { $in: ['$_id', expect.any(String)] } } },
+            { $match: { $expr: { $eq: ['$author', '$$tmpVar'] } } },
             { $match: { name: { $eq: 'foo' } } },
             { $addFields: { id: '$_id' } },
             { $project: { posts: 0 } },
@@ -93,9 +93,9 @@ describe('MongooseListAdapter', () => {
         $lookup: {
           as: expect.any(String),
           from: 'posts',
-          let: expect.any(Object),
+          let: { tmpVar: '$_id' },
           pipeline: [
-            { $match: { $expr: { $in: ['$_id', expect.any(String)] } } },
+            { $match: { $expr: { $eq: ['$author', '$$tmpVar'] } } },
             { $match: { name: { $eq: 'foo' } } },
             { $addFields: { id: '$_id' } },
             { $project: { posts: 0 } },
@@ -123,15 +123,6 @@ describe('MongooseListAdapter', () => {
         getQueryConditions: () => ({ title: value => ({ title: { $eq: value } }) }),
         field: { config: { many: false }, many: false },
       },
-      {
-        isRelationship: true,
-        getQueryConditions: () => ({}),
-        supportsRelationshipQuery: query => query === 'posts_some',
-        getRefListAdapter: () => ({ model: { collection: { name: 'posts' } } }),
-        field: { config: { many: true }, many: true },
-        path: 'posts',
-        dbPath: 'posts',
-      },
     ];
 
     const userListAdapter = createListAdapter(MongooseListAdapter, 'user');
@@ -139,11 +130,11 @@ describe('MongooseListAdapter', () => {
       {
         isRelationship: true,
         getQueryConditions: () => {},
-        supportsRelationshipQuery: query => query === 'posts_some',
-        getRefListAdapter: () => postListAdapter,
+        getListByKey: () => ({ adapter: postListAdapter }),
         field: { config: { many: true }, many: true },
         path: 'posts',
         dbPath: 'posts',
+        rel: { cardinality: '1:N', tableName: 'Post', columnName: 'author' },
       },
     ];
 
@@ -156,9 +147,9 @@ describe('MongooseListAdapter', () => {
         $lookup: {
           as: expect.any(String),
           from: 'posts',
-          let: expect.any(Object),
+          let: { tmpVar: '$_id' },
           pipeline: [
-            { $match: { $expr: { $in: ['$_id', expect.any(String)] } } },
+            { $match: { $expr: { $eq: ['$author', '$$tmpVar'] } } },
             { $match: { $and: [{ name: { $eq: 'foo' } }, { title: { $eq: 'bar' } }] } },
             { $addFields: { id: '$_id' } },
             { $project: { posts: 0 } },
@@ -179,9 +170,9 @@ describe('MongooseListAdapter', () => {
         $lookup: {
           as: expect.any(String),
           from: 'posts',
-          let: expect.any(Object),
+          let: { tmpVar: '$_id' },
           pipeline: [
-            { $match: { $expr: { $in: ['$_id', expect.any(String)] } } },
+            { $match: { $expr: { $eq: ['$author', '$$tmpVar'] } } },
             { $match: { $or: [{ name: { $eq: 'foo' } }, { title: { $eq: 'bar' } }] } },
             { $addFields: { id: '$_id' } },
             { $project: { posts: 0 } },

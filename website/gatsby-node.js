@@ -5,6 +5,7 @@ const visit = require('unist-util-visit');
 const rawMDX = require('@mdx-js/mdx');
 const matter = require('gray-matter');
 const mdastToString = require('mdast-util-to-string');
+const createPaginatedPages = require('gatsby-paginate');
 
 const generateUrl = require('./generateUrl');
 
@@ -19,10 +20,11 @@ const PROJECT_ROOT = path.resolve('..');
 const GROUPS = [
   '',
   'quick-start',
+  'blog',
   'tutorials',
   'guides',
+  'API',
   'discussions',
-  'api',
   'list-plugins',
   'road-map',
 ];
@@ -37,27 +39,29 @@ const SUB_GROUPS = [
   'utilities',
 ];
 
-exports.createPages = ({ actions, graphql }) => {
-  const { createPage } = actions;
-
-  const template = path.resolve(`src/templates/docs.js`);
-  const indexTemplate = path.resolve(`src/templates/index.js`);
-
-  // The 'fields' values are injected during the `onCreateNode` call below
-  return graphql(`
+const createDocsPages = async ({ createPage, graphql }) =>
+  graphql(`
     {
-      allMdx {
+      allMdx(
+        sort: {
+          fields: [fields___sortOrder, fields___sortSubOrder, fields___order, fields___pageTitle]
+        }
+      ) {
         edges {
           node {
             id
+            excerpt
             fields {
               slug
+              description
               navGroup
               navSubGroup
               workspaceSlug
               sortOrder
               sortSubOrder
               order
+              author
+              date
               isPackageIndex
               isIndex
               pageTitle
@@ -72,11 +76,6 @@ exports.createPages = ({ actions, graphql }) => {
       return Promise.reject(result.errors);
     }
 
-    /*
-      If you end up with multiple ways to generate a markdown page, you will
-      need to split out to new templates, with their own graphql queries
-    */
-
     const pages = result.data.allMdx.edges.filter(page => {
       const {
         node: {
@@ -87,21 +86,49 @@ exports.createPages = ({ actions, graphql }) => {
       return Boolean(!draft);
     });
 
+    let navGroups = {};
+
     pages.forEach(({ node: { id, fields } }) => {
+      if (fields.navGroup) {
+        if (!navGroups[fields.navGroup]) {
+          navGroups[fields.navGroup] = [{ node: { id, fields } }];
+        } else {
+          navGroups[fields.navGroup].push({ node: { id, fields } });
+        }
+      }
+
+      // navGroups.add(fields.navGroup)
       createPage({
         path: `${fields.slug}`,
-        component: fields.isIndex ? indexTemplate : template,
+        component: path.resolve(`src/templates/docs.js`),
         context: {
           mdPageId: id,
           ...fields,
+          isBlog: fields.navGroup === 'blog',
         }, // additional data can be passed via context
       });
     });
+
+    Object.entries(navGroups).forEach(([baseSlug, pages]) => {
+      if (baseSlug !== 'quick-start' && baseSlug !== 'API') {
+        createPaginatedPages({
+          edges: pages,
+          pathPrefix: slugify(baseSlug),
+          createPage: createPage,
+          context: { name: baseSlug, showSearch: true },
+          pageTemplate: 'src/templates/listPage.js',
+        });
+      }
+    });
   });
+
+exports.createPages = ({ actions, graphql }) => {
+  const { createPage } = actions;
+  return createDocsPages({ createPage, graphql });
 };
 
 const getEditUrl = absPath =>
-  `https://github.com/keystonejs/keystone-5/edit/master/${path.relative(PROJECT_ROOT, absPath)}`;
+  `https://github.com/keystonejs/keystone/edit/master/${path.relative(PROJECT_ROOT, absPath)}`;
 
 exports.onCreateNode = async ({ node, actions, getNode }) => {
   const { createNodeField } = actions;
@@ -115,7 +142,7 @@ exports.onCreateNode = async ({ node, actions, getNode }) => {
     const isPackage = !GROUPS.includes(sourceInstanceName);
     let { data, content } = matter(node.rawBody, { delimiters: ['<!--[meta]', '[meta]-->'] });
 
-    const navGroup = data.section;
+    const navGroup = data.section === 'api' ? 'API' : data.section;
     const navSubGroup = data.subSection;
     const order = data.order || 99999999999;
     let pageTitle = data.title || '';
@@ -157,6 +184,8 @@ exports.onCreateNode = async ({ node, actions, getNode }) => {
       isPackageIndex: isPackage && relativePath === 'README.md',
       isIndex: !isPackage && relativePath === 'index.md',
       pageTitle: pageTitle,
+      author: data.author,
+      date: new Date(data.date).toDateString(),
       draft: Boolean(data.draft),
       description,
       heading,

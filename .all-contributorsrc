@@ -401,6 +401,70 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "wcalebgray",
+      "name": "Caleb Gray",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/11668534?v=4",
+      "profile": "https://github.com/wcalebgray",
+      "contributions": [
+        "code",
+        "test"
+      ]
+    },
+    {
+      "login": "frank10gm",
+      "name": "frank10gm",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/754139?v=4",
+      "profile": "http://hackweb.altervista.org",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "mbrodt",
+      "name": "mbrodt",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/21239560?v=4",
+      "profile": "https://github.com/mbrodt",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "zamkevich",
+      "name": "Misha Zamkevich",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/13717428?v=4",
+      "profile": "https://github.com/zamkevich",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "matheuschimelli",
+      "name": "Matheus Chimelli",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/10470074?v=4",
+      "profile": "https://github.com/matheuschimelli",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "gpersable",
+      "name": "Gita Permatasari Sujatmiko",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/48637618?v=4",
+      "profile": "https://github.com/gpersable",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "borg",
+      "name": "Andreas Borg",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/203895?v=4",
+      "profile": "http://elevated.to",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

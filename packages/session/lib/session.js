@@ -3,15 +3,23 @@ const expressSession = require('express-session');
 const cookie = require('cookie');
 
 class SessionManager {
-  constructor({
-    cookieSecret = 'qwerty',
-    secureCookies = process.env.NODE_ENV === 'production', // Default to true in production
-    cookieMaxAge = 1000 * 60 * 60 * 24 * 30, // 30 days
-    sessionStore,
-  }) {
+  constructor({ cookieSecret, cookie, sessionStore }) {
+    if (!cookieSecret) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(
+          'The cookieSecret config option is required when running Keystone in a production environment. Update your app or environment config so this value is supplied to the Keystone constructor. See [https://www.keystonejs.com/keystonejs/keystone/#cookiesecret] for details.'
+        );
+      } else {
+        console.warn(
+          'No cookieSecret value was provided. Please generate a secure value and add it to your app. Until this is done, a random cookieSecret will be generated each time Keystone is started. This will cause sessions to be reset between restarts. See [https://www.keystonejs.com/keystonejs/keystone/#cookiesecret] for details.'
+        );
+
+        cookieSecret = [...Array(30)].map(() => ((Math.random() * 36) | 0).toString(36)).join('');
+      }
+    }
+
     this._cookieSecret = cookieSecret;
-    this._secureCookies = secureCookies;
-    this._cookieMaxAge = cookieMaxAge;
+    this._cookie = cookie;
     this._sessionStore = sessionStore;
   }
 
@@ -63,7 +71,7 @@ class SessionManager {
       resave: false,
       saveUninitialized: false,
       name: COOKIE_NAME,
-      cookie: { secure: this._secureCookies, maxAge: this._cookieMaxAge },
+      cookie: this._cookie,
       store: this._sessionStore,
     });
 
@@ -93,11 +101,7 @@ class SessionManager {
     }
     let item;
     try {
-      item = await list.getAccessControlledItem(req.session.keystoneItemId, true, {
-        operation: 'read',
-        context: {},
-        info: {},
-      });
+      item = (await list.adapter.itemsQuery({ where: { id: req.session.keystoneItemId } }))[0];
     } catch (e) {
       return;
     }
@@ -119,10 +123,11 @@ class SessionManager {
   }
 
   endAuthedSession(req) {
+    const { keystoneListKey, keystoneItemId } = req.session || {};
     return new Promise((resolve, reject) =>
       req.session.regenerate(err => {
         if (err) return reject(err);
-        resolve({ success: true });
+        resolve({ success: true, listKey: keystoneListKey, itemId: keystoneItemId });
       })
     );
   }
@@ -131,8 +136,6 @@ class SessionManager {
     return {
       startAuthedSession: ({ item, list }) => this.startAuthedSession(req, { item, list }),
       endAuthedSession: () => this.endAuthedSession(req),
-      authedItem: req.user,
-      authedListKey: req.authedListKey,
     };
   }
 }

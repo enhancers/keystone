@@ -3,6 +3,7 @@ import { Kind } from 'graphql/language';
 import { DateTime, FixedOffsetZone } from 'luxon';
 import { MongooseFieldAdapter } from '@keystonejs/adapter-mongoose';
 import { KnexFieldAdapter } from '@keystonejs/adapter-knex';
+import { PrismaFieldAdapter } from '@keystonejs/adapter-prisma';
 import { Implementation } from '../../Implementation';
 
 class _DateTime extends Implementation {
@@ -15,6 +16,10 @@ class _DateTime extends Implementation {
     this.isOrderable = true;
   }
 
+  get _supportsUnique() {
+    return true;
+  }
+
   gqlOutputFields() {
     return [`${this.path}: DateTime`];
   }
@@ -25,10 +30,10 @@ class _DateTime extends Implementation {
       ...this.inInputFields('DateTime'),
     ];
   }
-  get gqlUpdateInputFields() {
+  gqlUpdateInputFields() {
     return [`${this.path}: DateTime`];
   }
-  get gqlCreateInputFields() {
+  gqlCreateInputFields() {
     return [`${this.path}: DateTime`];
   }
   getGqlAuxTypes() {
@@ -151,21 +156,21 @@ const CommonDateTimeInterface = superclass =>
 export class MongoDateTimeInterface extends CommonDateTimeInterface(MongooseFieldAdapter) {
   constructor() {
     super(...arguments);
-    this.dbPath = `${this.path}_utc`;
+    this.utcPath = `${this.path}_utc`;
+    this.offsetPath = `${this.path}_offset`;
+    this.realKeys = [this.utcPath, this.offsetPath];
+    this.dbPath = this.utcPath;
   }
 
   addToMongooseSchema(schema) {
     const { mongooseOptions } = this.config;
-    const field_path = this.path;
-    const utc_field = `${field_path}_utc`;
-    const offset_field = `${field_path}_offset`;
     schema.add({
       // FIXME: Mongoose needs to know about this field in order for the correct
       // attributes to make it through to the pre-hooks.
-      [field_path]: { type: String, ...mongooseOptions },
+      [this.path]: { type: String, ...mongooseOptions },
       // These are the actual fields we care about storing in the database.
-      [utc_field]: { type: Date, ...mongooseOptions },
-      [offset_field]: { type: String, ...mongooseOptions },
+      [this.utcPath]: this.mergeSchemaOptions({ type: Date }, this.config),
+      [this.offsetPath]: { type: String, ...mongooseOptions },
     });
   }
 
@@ -212,6 +217,28 @@ export class KnexDateTimeInterface extends CommonDateTimeInterface(KnexFieldAdap
     } else if (this.defaultTo) {
       utcColumn.defaultTo(this.defaultTo);
     }
+  }
+}
+
+export class PrismaDateTimeInterface extends CommonDateTimeInterface(PrismaFieldAdapter) {
+  constructor() {
+    super(...arguments);
+
+    this.utcPath = `${this.path}_utc`;
+    this.offsetPath = `${this.path}_offset`;
+    this.realKeys = [this.utcPath, this.offsetPath];
+    this.sortKey = this.utcPath;
+    this.dbPath = this.utcPath;
+
+    this.isUnique = !!this.config.isUnique;
+    this.isIndexed = !!this.config.isIndexed && !this.config.isUnique;
+  }
+
+  getPrismaSchema() {
+    return [
+      `${this.path}_utc    DateTime? ${this.config.isUnique ? '@unique' : ''}`,
+      `${this.path}_offset String?`,
+    ];
   }
 }
 

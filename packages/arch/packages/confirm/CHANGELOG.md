@@ -1,5 +1,48 @@
 # @arch-ui/confirm
 
+## 0.0.22
+
+### Patch Changes
+
+- [`ecbe1471f`](https://github.com/keystonejs/keystone/commit/ecbe1471fe22ca029a178a57dc216f6445b4053a) [#3609](https://github.com/keystonejs/keystone/pull/3609) Thanks [@renovate](https://github.com/apps/renovate)! - Updated dependency `focus-trap-react` to `^8.0.0`.
+
+## 0.0.21
+
+### Patch Changes
+
+- [`16e4d91a2`](https://github.com/keystonejs/keystone/commit/16e4d91a20cc6a079c60ea9801381da55444b1e1) [#3545](https://github.com/keystonejs/keystone/pull/3545) Thanks [@renovate](https://github.com/apps/renovate)! - Updated react monorepo dependencies.
+
+## 0.0.20
+
+### Patch Changes
+
+- [`6cb4476ff`](https://github.com/keystonejs/keystone/commit/6cb4476ff15923933862c1cd7d4b1ade794106c6) [#3481](https://github.com/keystonejs/keystone/pull/3481) Thanks [@Noviny](https://github.com/Noviny)! - Updated dependencies through a major version - this shouldn't require change by consumers.
+
+* [`5935b89f8`](https://github.com/keystonejs/keystone/commit/5935b89f8862b36f14d09da68f056f759a860f3e) [#3477](https://github.com/keystonejs/keystone/pull/3477) Thanks [@Noviny](https://github.com/Noviny)! - Updating dependencies:
+
+  These changes bring the keystone dev experience inline with installing keystone from npm :D
+
+- [`0fc878fa9`](https://github.com/keystonejs/keystone/commit/0fc878fa918c3196196f943f195ffaa62fce504b) [#3439](https://github.com/keystonejs/keystone/pull/3439) Thanks [@renovate](https://github.com/apps/renovate)! - Updated babel dependencies.
+
+- Updated dependencies [[`6cb4476ff`](https://github.com/keystonejs/keystone/commit/6cb4476ff15923933862c1cd7d4b1ade794106c6), [`5935b89f8`](https://github.com/keystonejs/keystone/commit/5935b89f8862b36f14d09da68f056f759a860f3e), [`0fc878fa9`](https://github.com/keystonejs/keystone/commit/0fc878fa918c3196196f943f195ffaa62fce504b)]:
+  - @arch-ui/modal-utils@1.0.13
+  - @arch-ui/theme@0.0.11
+
+## 0.0.19
+
+### Patch Changes
+
+- [`45b151b0`](https://github.com/keystonejs/keystone/commit/45b151b05de0583ba50364caeda8b5bb7a111385) [#2829](https://github.com/keystonejs/keystone/pull/2829) Thanks [@Vultraz](https://github.com/Vultraz)! - Converted React PureComponents to functional ones.
+
+## 0.0.18
+
+### Patch Changes
+
+- [`577b5e69`](https://github.com/keystonejs/keystone/commit/577b5e69ac4f949d1be2a80d8f391cb0a4b1333a) [#2799](https://github.com/keystonejs/keystone/pull/2799) Thanks [@MadeByMike](https://github.com/MadeByMike)! - Upgraded React and Emotion packages.
+
+- Updated dependencies [[`577b5e69`](https://github.com/keystonejs/keystone/commit/577b5e69ac4f949d1be2a80d8f391cb0a4b1333a)]:
+  - @arch-ui/modal-utils@1.0.10
+
 ## 0.0.17
 
 ### Patch Changes
@@ -84,13 +127,13 @@
 
 ### Patch Changes
 
-- [42c3fbc9](https://github.com/keystonejs/keystone-5/commit/42c3fbc9): Upgrade emotion to 10.0.14
+- [42c3fbc9](https://github.com/keystonejs/keystone/commit/42c3fbc9): Upgrade emotion to 10.0.14
 
 ## 0.0.7
 
 ### Patch Changes
 
-- [19fe6c1b](https://github.com/keystonejs/keystone-5/commit/19fe6c1b):
+- [19fe6c1b](https://github.com/keystonejs/keystone/commit/19fe6c1b):
 
   Move frontmatter in docs into comments
 
@@ -98,40 +141,40 @@
 
 ### Patch Changes
 
-- [81dc0be5](https://github.com/keystonejs/keystone-5/commit/81dc0be5):
+- [81dc0be5](https://github.com/keystonejs/keystone/commit/81dc0be5):
 
   - Update dependencies
 
-- [5f1a5cf3](https://github.com/keystonejs/keystone-5/commit/5f1a5cf3):
+- [5f1a5cf3](https://github.com/keystonejs/keystone/commit/5f1a5cf3):
 
   - Update usage of transition API
 
-* Updated dependencies [a03fd601](https://github.com/keystonejs/keystone-5/commit/a03fd601):
-* Updated dependencies [5f1a5cf3](https://github.com/keystonejs/keystone-5/commit/5f1a5cf3):
+* Updated dependencies [a03fd601](https://github.com/keystonejs/keystone/commit/a03fd601):
+* Updated dependencies [5f1a5cf3](https://github.com/keystonejs/keystone/commit/5f1a5cf3):
   - @arch-ui/modal-utils@1.0.0
 
 ## 0.0.5
 
-- [patch][e75c105c](https://github.com/keystonejs/keystone-5/commit/e75c105c):
+- [patch][e75c105c](https://github.com/keystonejs/keystone/commit/e75c105c):
 
   - admin revamp
 
 ## 0.0.4
 
-- Updated dependencies [302930a4](https://github.com/keystonejs/keystone-5/commit/302930a4):
+- Updated dependencies [302930a4](https://github.com/keystonejs/keystone/commit/302930a4):
   - @arch-ui/modal-utils@0.0.4
 
 ## 0.0.3
 
-- [patch][d9a1be91](https://github.com/keystonejs/keystone-5/commit/d9a1be91):
+- [patch][d9a1be91](https://github.com/keystonejs/keystone/commit/d9a1be91):
 
   - Update dependencies
 
-- [patch][7417ea3a](https://github.com/keystonejs/keystone-5/commit/7417ea3a):
+- [patch][7417ea3a](https://github.com/keystonejs/keystone/commit/7417ea3a):
 
   - Update patch-level dependencies
 
-- Updated dependencies [11c372fa](https://github.com/keystonejs/keystone-5/commit/11c372fa):
+- Updated dependencies [11c372fa](https://github.com/keystonejs/keystone/commit/11c372fa):
   - @arch-ui/modal-utils@0.0.3
 
 ## 0.0.2

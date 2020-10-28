@@ -14,23 +14,24 @@ This document describes:
 - The specific arguments and usage information of different hook sets
 
 For a more general overview of the concepts, patterns and function of the Keystone hook system, see the
-[Hook Guide](/docs/guides/hooks.md).
+[hooks guide](/docs/guides/hooks.md).
 
----
+Note: For performance reasons relationship fields are not fully resolved by hooks, and will return an array of ids. To fetch data from a relationship field, a second query is required. To do this inside a hook function use the `context.executeGraphQL()` method.
 
-## Hook Types
+## Hook types
 
-Hooks can be categories into three [types](/docs/guides/hooks.md#hook-type)
+Hooks can be categorised into four [types](/docs/guides/hooks.md#hook-type)
 depending on where in the list schema they're attached:
 
 - [List hooks](#list-hooks)
 - [Field hooks](#field-hooks)
-- [Field Type hooks](#field-type-hooks)
+- [Field type hooks](#field-type-hooks)
+- [Authentication hooks](#authentication-hooks)
 
-The [hook sets](/docs/guides/hooks.md#hook-set) that span these types have very similar signatures.
+With the exception of the authentication hooks, the [hook sets](/docs/guides/hooks.md#hook-set) that span these types have very similar signatures.
 Any differences are called out in the documentation below.
 
-### List Hooks
+### List hooks
 
 List hooks can be defined by the system developer by specifying the `hooks` attribute of a list configuration when calling `createList()`.
 Hooks for the `create`, `update` and `delete` operations are available.
@@ -41,25 +42,23 @@ Hooks for the `create`, `update` and `delete` operations are available.
 keystone.createList('User', {
   fields: {
     name: { type: Text },
-    ...
   },
   hooks: {
     // Hooks for create and update operations
-    resolveInput: async (...) => { ... },
-    validateInput: async (...) => { ... },
-    beforeChange: async (...) => { ... },
-    afterChange: async (...) => { ... },
+    resolveInput: async (...) => {...},
+    validateInput: async (...) => {...},
+    beforeChange: async (...) => {...},
+    afterChange: async (...) => {...},
 
     // Hooks for delete operations
-    validateDelete: async (...) => { ... },
-    beforeDelete: async (...) => { ... },
-    afterDelete: async (...) => { ... },
+    validateDelete: async (...) => {...},
+    beforeDelete: async (...) => {...},
+    afterDelete: async (...) => {...},
   },
-  ...
 });
 ```
 
-### Field Hooks
+### Field hooks
 
 Field hooks can be defined by the system developer by specifying the `hooks` attribute of a field configuration when calling `createList()`.
 Hooks for the `create`, `update` and `delete` operations are available.
@@ -73,27 +72,24 @@ keystone.createList('User', {
       type: Text,
       hooks: {
         // Hooks for create and update operations
-        resolveInput: async (...) => { ... },
-        validateInput: async (...) => { ... },
-        beforeChange: async (...) => { ... },
-        afterChange: async (...) => { ... },
+        resolveInput: async (...) => {...}
+        validateInput: async (...) => {...}
+        beforeChange: async (...) => {...}
+        afterChange: async (...) => {...}
 
         // Hooks for delete operations
-        validateDelete: async (...) => { ... },
-        beforeDelete: async (...) => { ... },
-        afterDelete: async (...) => { ... },
+        validateDelete: async (...) => {...}
+        beforeDelete: async (...) => {...}
+        afterDelete: async (...) => {...}
       },
-      ...
     },
-    ...
   },
-  ...
 });
 ```
 
-### Field Type Hooks
+### Field type hooks
 
-Field Type hooks are associated with a particular _field type_ and are applied to all fields of that type.
+Field type hooks are associated with a particular _field type_ and are applied to all fields of that type.
 Custom field types can implement hooks by implementing the following hook methods on the `Field` base class.
 See the [Custom Field Types guide](/docs/guides/custom-field-types.md) for more info.
 
@@ -104,21 +100,42 @@ Hooks for the `create`, `update` and `delete` operations are available.
 ```js
 class CustomFieldType extends Field {
   // Hooks for create and update operations
-  async resolveInput(...) { ... }
-  async validateInput(...) { ... }
-  async beforeChange(...) { ... }
-  async afterChange(...) { ... }
+  async resolveInput(...) {...},
+  async validateInput(...) {...},
+  async beforeChange(...) {...},
+  async afterChange(...) {...},
 
   // Hooks for delete operations
-  async beforeDelete(...) { ... }
-  async validateDelete(...) { ... }
-  async afterDelete(...) { ... }
+  async beforeDelete(...) {...},
+  async validateDelete(...) {...},
+  async afterDelete(...) {...},
 }
 ```
 
----
+### Authentication hooks
 
-## Hook Sets
+Authentication hooks can be defined by the system developer by specifying the `hooks` attribute when calling `createAuthStrategy()`.
+Hooks for the `authenticate` and `unauthenticate` operations are available.
+
+#### Usage
+
+```js
+keystone.createAuthStrategy({
+  type: PasswordAuthStrategy,
+  list: 'User',
+  hooks: {
+    resolveAuthInput: async (...) => {...},
+    validateAuthInput: async (...) => {...},
+    beforeAuth: async (...) => {...},
+    afterAuth: async (...) => {...},
+
+    beforeUnauth: async (...) => {...},
+    afterUnauth: async (...) => {...},
+  },
+});
+```
+
+## Hook sets
 
 ### `resolveInput`
 
@@ -140,7 +157,8 @@ The result is passed to [the next function in the execution order](/docs/guides/
 | `originalInput` | `Object`                | The data received by the GraphQL mutation                                                                                    |
 | `resolvedData`  | `Object`                | The data received by the GraphQL mutation plus defaults values                                                               |
 | `context`       | `Apollo Context`        | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/data/data/#context-argument) for this request |
-| `actions`       | `Object`                | Contains a `query` functions that queries the list within the current operations context, see [Query Helper](#query-helper)  |
+| `listKey`       | `String`                | The key for the list being operated on                                                                                       |
+| `fieldPath`     | `String`                | The path for the field being operated on (applicable to field hooks only)                                                    |
 
 #### Usage
 
@@ -153,10 +171,10 @@ const resolveInput = ({
   originalInput,
   resolvedData,
   context,
-  actions,
+  listKey,
+  fieldPath, // exists only for field hooks
 }) => {
-  // Input resolution logic
-  // Object returned is used in place of resolvedData
+  // Input resolution logic. Object returned is used in place of `resolvedData`.
   return resolvedData;
 };
 ```
@@ -180,8 +198,9 @@ Return values are ignored.
 | `originalInput`           | `Object`                | The data received by the GraphQL mutation                                                                                    |
 | `resolvedData`            | `Object`                | The data received by the GraphQL mutation plus defaults values                                                               |
 | `context`                 | `Apollo Context`        | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/data/data/#context-argument) for this request |
-| `actions`                 | `Object`                | Contains a `query` functions that queries the list within the current operations context, see [Query Helper](#query-helper)  |
 | `addFieldValidationError` | `Function`              | Used to set a field validation error; accepts a `String`                                                                     |
+| `listKey`                 | `String`                | The key for the list being operated on                                                                                       |
+| `fieldPath`               | `String`                | The path for the field being operated on (applicable to field hooks only)                                                    |
 
 #### Usage
 
@@ -194,8 +213,9 @@ const validateInput = ({
   originalInput,
   resolvedData,
   context,
-  actions,
   addFieldValidationError,
+  listKey,
+  fieldPath, // exists only for field hooks
 }) => {
   // Throw error objects or register validation errors with addFieldValidationError(<String>)
   // Return values ignored
@@ -221,7 +241,8 @@ Return values are ignored.
 | `originalInput` | `Object`                | The data received by the GraphQL mutation                                                                                    |
 | `resolvedData`  | `Object`                | The data received by the GraphQL mutation plus defaults values                                                               |
 | `context`       | `Apollo Context`        | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/data/data/#context-argument) for this request |
-| `actions`       | `Object`                | Contains a `query` functions that queries the list within the current operations context, see [Query Helper](#query-helper)  |
+| `listKey`       | `String`                | The key for the list being operated on                                                                                       |
+| `fieldPath`     | `String`                | The path for the field being operated on (applicable to field hooks only)                                                    |
 
 #### Usage
 
@@ -234,7 +255,8 @@ const beforeChange = ({
   originalInput,
   resolvedData,
   context,
-  actions,
+  listKey,
+  fieldPath, // exists only for field hooks
 }) => {
   // Perform side effects
   // Return values ignored
@@ -264,7 +286,8 @@ Return values are ignored.
 | `originalInput` | `Object`                | The data received by the GraphQL mutation                                                                                    |
 | `updatedItem`   | `Object`                | The new/currently stored item                                                                                                |
 | `context`       | `Apollo Context`        | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/data/data/#context-argument) for this request |
-| `actions`       | `Object`                | Contains a `query` functions that queries the list within the current operations context, see [Query Helper](#query-helper)  |
+| `listKey`       | `String`                | The key for the list being operated on                                                                                       |
+| `fieldPath`     | `String`                | The path for the field being operated on (applicable to field hooks only)                                                    |
 
 #### Usage
 
@@ -277,7 +300,8 @@ const afterChange = ({
   originalInput,
   updatedItem,
   context,
-  actions,
+  listKey,
+  fieldPath, // exists only for field hooks
 }) => {
   // Perform side effects
   // Return values ignored
@@ -300,8 +324,9 @@ Should throw or register errors with `addFieldValidationError(<String>)` if the 
 | `operation`               | `String`         | The operation being performed (`delete` in this case)                                                                        |
 | `existingItem`            | `Object`         | The current stored item                                                                                                      |
 | `context`                 | `Apollo Context` | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/data/data/#context-argument) for this request |
-| `actions`                 | `Object`         | Contains a `query` functions that queries the list within the current operations context, see [Query Helper](#query-helper)  |
 | `addFieldValidationError` | `Function`       | Used to set a field validation error; accepts a `String`                                                                     |
+| `listKey`                 | `String`         | The key for the list being operated on                                                                                       |
+| `fieldPath`               | `String`         | The path for the field being operated on (applicable to field hooks only)                                                    |
 
 #### Usage
 
@@ -312,8 +337,9 @@ const validateDelete = ({
   operation,
   existingItem,
   context,
-  actions,
   addFieldValidationError,
+  listKey,
+  fieldPath, // exists only for field hooks
 }) => {
   // Throw error objects or register validation errors with addFieldValidationError(<String>)
   // Return values ignored
@@ -337,7 +363,8 @@ Return values are ignored.
 | `operation`    | `String`         | The operation being performed (`delete` in this case)                                                                        |
 | `existingItem` | `Object`         | The current stored item                                                                                                      |
 | `context`      | `Apollo Context` | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/data/data/#context-argument) for this request |
-| `actions`      | `Object`         | Contains a `query` functions that queries the list within the current operations context, see [Query Helper](#query-helper)  |
+| `listKey`      | `String`         | The key for the list being operated on                                                                                       |
+| `fieldPath`    | `String`         | The path for the field being operated on (applicable to field hooks only)                                                    |
 
 #### Usage
 
@@ -348,7 +375,8 @@ const beforeDelete = ({
   operation,
   existingItem,
   context,
-  actions,
+  listKey,
+  fieldPath, // exists only for field hooks
 }) => {
   // Perform side effects
   // Return values ignored
@@ -357,7 +385,7 @@ const beforeDelete = ({
 
 ### `afterDelete`
 
-**Used to cause side effects before the delete operation is executed.**
+**Used to cause side effects after the delete operation is executed.**
 
 - Invoked after the delete operation has been executed
 - Available for `delete` operations
@@ -374,7 +402,8 @@ Return values are ignored.
 | `operation`    | `String`         | The operation being performed (`delete` in this case)                                                                        |
 | `existingItem` | `Object`         | The previously stored item, now deleted                                                                                      |
 | `context`      | `Apollo Context` | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/data/data/#context-argument) for this request |
-| `actions`      | `Object`         | Contains a `query` functions that queries the list within the current operations context, see [Query Helper](#query-helper)  |
+| `listKey`      | `String`         | The key for the list being operated on                                                                                       |
+| `fieldPath`    | `String`         | The path for the field being operated on (applicable to field hooks only)                                                    |
 
 #### Usage
 
@@ -385,7 +414,245 @@ const afterDelete = ({
   operation,
   existingItem,
   context,
-  actions,
+  listKey,
+  fieldPath, // exists only for field hooks
+}) => {
+  // Perform side effects
+  // Return values ignored
+};
+```
+
+### `resolveAuthInput`
+
+**Used to modify the `originalInput`, producing `resolvedData`.**
+
+- Invoked after access control is applied
+- Available for `authenticate` operations
+
+The return of `resolveAuthInput` can be a `Promise` or an `Object`.
+It should resolve to the same structure as `originalInput`.
+The result is passed to [the next function in the execution order](/docs/guides/hooks.md#intra-hook-execution-order).
+
+#### Arguments
+
+| Argument        | Type             | Description                                                                                                                   |
+| :-------------- | :--------------- | :---------------------------------------------------------------------------------------------------------------------------- |
+| `operation`     | `String`         | The operation being performed (`authenticate` in this case)                                                                   |
+| `originalInput` | `Object`         | The data received by the GraphQL mutation                                                                                     |
+| `context`       | `Apollo Context` | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/essentials/data.html#context) for this request |
+| `listKey`       | `String`         | The key for the list being operated on                                                                                        |
+
+#### Usage
+
+<!-- prettier-ignore -->
+
+```js
+const resolveAuthInput = ({
+  operation,
+  originalInput,
+  context,
+  listKey,
+}) => {
+  // Input resolution logic
+  // Object returned is used in place of resolvedData
+  return resolvedData;
+};
+```
+
+### `validateAuthInput`
+
+**Used to verify the `resolvedData` is valid.**
+
+- Invoked after the `resolveAuthInput` hook has resolved
+- Available for `authenticate` operations
+
+If errors are found in `resolvedData` the function should either throw or call the supplied `addValidationError` argument.
+Return values are ignored.
+
+#### Arguments
+
+| Argument             | Type             | Description                                                                                                                   |
+| :------------------- | :--------------- | :---------------------------------------------------------------------------------------------------------------------------- |
+| `operation`          | `String`         | The operation being performed (`authenticate` in this case)                                                                   |
+| `originalInput`      | `Object`         | The data received by the GraphQL mutation                                                                                     |
+| `resolvedData`       | `Object`         | The data received by the GraphQL mutation or returned by `resolveAuthInput`, if defined                                       |
+| `context`            | `Apollo Context` | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/essentials/data.html#context) for this request |
+| `addValidationError` | `Function`       | Used to set a validation error; accepts a message `String`                                                                    |
+| `listKey`            | `String`         | The key for the list being operated on                                                                                        |
+
+#### Usage
+
+<!-- prettier-ignore -->
+
+```js
+const validateAuthInput = ({
+  operation,
+  originalInput,
+  resolvedData,
+  context,
+  addFieldValidationError,
+  listKey,
+}) => {
+  // Throw error objects or register validation errors with addValidationError(<String>)
+  // Return values ignored
+};
+```
+
+### `beforeAuth`
+
+**Used to cause side effects before the authenticate operation is executed.**
+
+- Invoked after the `validateAuthInput` hook has resolved
+- Available for `authenticate` operations
+
+`beforeAuth` hooks can perform operations before the auth strategy `validate()` function is invoked.
+Return values are ignored.
+
+#### Arguments
+
+| Argument        | Type             | Description                                                                                                                   |
+| :-------------- | :--------------- | :---------------------------------------------------------------------------------------------------------------------------- |
+| `operation`     | `String`         | The operation being performed (`authenticate` in this case)                                                                   |
+| `originalInput` | `Object`         | The data received by the GraphQL mutation                                                                                     |
+| `resolvedData`  | `Object`         | The data received by the GraphQL mutation or returned by `resolveAuthInput`, if defined                                       |
+| `context`       | `Apollo Context` | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/essentials/data.html#context) for this request |
+| `listKey`       | `String`         | The key for the list being operated on                                                                                        |
+
+#### Usage
+
+<!-- prettier-ignore -->
+
+```js
+const beforeAuth = ({
+  operation,
+  originalInput,
+  resolvedData,
+  context,
+  listKey,
+}) => {
+  // Perform side effects
+  // Return values ignored
+};
+```
+
+### `afterAuth`
+
+**Used to cause side effects after the authenticate operation is executed.**
+
+- Invoked after the authenticate operation has completed
+- Available for `authenticate` operations
+
+Can cause side effects after the credentials have been validated or rejected.
+If authentication was successful, the function is passed the item being authenticated.
+
+Return values are ignored.
+
+#### Arguments
+
+| Argument        | Type             | Description                                                                                                                   |
+| :-------------- | :--------------- | :---------------------------------------------------------------------------------------------------------------------------- |
+| `operation`     | `String`         | The operation being performed (`authenticate` in this case)                                                                   |
+| `item`          | `Object`         | The item the caller has successfully authenticated as                                                                         |
+| `success`       | `Boolean`        | Indicates whether the credentials were verified successfully                                                                  |
+| `message`       | `String`         | The message being returned to caller                                                                                          |
+| `token`         | `String`         | The session token generated                                                                                                   |
+| `originalInput` | `Object`         | The data received by the GraphQL mutation                                                                                     |
+| `resolvedData`  | `Object`         | The data received by the GraphQL mutation or returned by `resolveAuthInput`, if defined                                       |
+| `context`       | `Apollo Context` | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/essentials/data.html#context) for this request |
+| `listKey`       | `String`         | The key for the list being operated on                                                                                        |
+
+#### Usage
+
+<!-- prettier-ignore -->
+
+```js
+const afterAuth = ({
+  operation,
+  item,
+  success,
+  message,
+  token,
+  originalInput,
+  resolvedData,
+  context,
+  listKey,
+}) => {
+  // Perform side effects
+  // Return values ignored
+};
+```
+
+### `beforeUnauth`
+
+**Used to cause side effects before the unauthenticate operation is executed.**
+
+- Invoked after access control is applied
+- Available for `unauthenticate` operations
+
+`beforeUnauth` hooks can perform operations before the `context.endAuthedSession()` function is invoked.
+Return values are ignored.
+
+#### Arguments
+
+| Argument    | Type             | Description                                                                                                                   |
+| :---------- | :--------------- | :---------------------------------------------------------------------------------------------------------------------------- |
+| `operation` | `String`         | The operation being performed (`authenticate` in this case)                                                                   |
+| `context`   | `Apollo Context` | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/essentials/data.html#context) for this request |
+| `listKey`   | `String`         | The key for the list being operated on                                                                                        |
+
+#### Usage
+
+<!-- prettier-ignore -->
+
+```js
+const beforeUnauth = ({
+  operation,
+  context,
+  listKey,
+}) => {
+  // Perform side effects
+  // Return values ignored
+};
+```
+
+### `afterUnauth`
+
+**Used to cause side effects after the unauthenticate operation is executed.**
+
+- Invoked after the unauthenticate operation has completed
+- Available for `unauthenticate` operations
+
+Can cause side effects after the user session has been ended.
+If a user session was terminated, the `listKey` and `itemId` of the user are passed to the function.
+
+Return values are ignored.
+
+#### Arguments
+
+| Argument    | Type             | Description                                                                                                                   |
+| :---------- | :--------------- | :---------------------------------------------------------------------------------------------------------------------------- |
+| `operation` | `String`         | The operation being performed (`authenticate` in this case)                                                                   |
+| `success`   | `Boolean`        | Indicates whether the unauthentication operation was successful                                                               |
+| `listKey`   | `String`         | The list key of the unauthenticated user (if there was one)                                                                   |
+| `itemid`    | `String`         | The item ID of the unauthenticated user (if there was one)                                                                    |
+| `context`   | `Apollo Context` | The [Apollo `context` object](https://www.apollographql.com/docs/apollo-server/essentials/data.html#context) for this request |
+| `listKey`   | `String`         | The key for the list being operated on                                                                                        |
+
+#### Usage
+
+<!-- prettier-ignore -->
+
+```js
+const afterAuth = ({
+  operation,
+  item,
+  success,
+  message,
+  token,
+  originalInput,
+  resolvedData,
+  context,
+  listKey,
 }) => {
   // Perform side effects
   // Return values ignored
@@ -394,48 +661,7 @@ const afterDelete = ({
 
 ---
 
-## `actions` Argument
+### Running GraphQL Queries From Hook
 
-All hooks receive an `actions` object as an argument.
-It contains helper functionality for accessing the GraphQL schema, optionally _within_ the context of the current request.
-When used, this context reuse causes access control to be applied as though the caller themselves initiated an operation.
-It can therefore be useful for performing additional operations on behalf of the caller.
-
-The `actions` object currently contains a single function: `query`.
-
-### Query Helper
-
-Perform a GraphQL query, optionally _within_ the context of the current request.
-It returns a `Promise<Object>` containing the standard GraphQL `errors` and `data` properties.
-
-#### Argument
-
-| Argument                    | Type      | Description                                                                                                                          |
-| :-------------------------- | :-------- | :----------------------------------------------------------------------------------------------------------------------------------- |
-| `queryString`               | `String`  | A graphQL query string                                                                                                               |
-| `options`                   | `Object`  | Config for the query                                                                                                                 |
-| `options.skipAccessControl` | `Boolean` | By default access control _of the user making the initial request_ is still tested. Pass as `true` to disable access control checks. |
-| `options.variables`         | `Object`  | The variables passed to the graphql query for the given queryString                                                                  |
-
-#### Usage
-
-```js
-const myHook = ({
-  // ...
-  actions: { query },
-}) => {
-  const queryString = `
-    query {
-      # GraphQL query here...
-    }
-  `;
-  const options = {
-    skipAccessControl: false,
-    variables: { /* GraphQL variables here.. */ },
-  };
-  const { errors, data } = await query(queryString, options);
-
-  // Check for errors
-  // Do something with data
-};
-```
+If you need to execute a GraphQL query from within your hook function you can use `context.executeGraphQL()`.
+See the docs on [server-side graphql operations](/docs/discussions/server-side-graphql.md) for more details.

@@ -5,8 +5,7 @@ import { Global, css, jsx } from '@emotion/core';
 import { FieldContainer, FieldLabel } from '@arch-ui/fields';
 
 // MUST IMPORT for TinyMCE to work!
-// eslint-disable-next-line no-unused-vars
-import tinymce from 'tinymce/tinymce';
+import 'tinymce/tinymce';
 
 import { Editor } from '@tinymce/tinymce-react';
 
@@ -37,14 +36,13 @@ const GlobalStyles = () => (
   />
 );
 
-const WysiwygField = ({ onChange, autoFocus, field, errors, value: serverValue }) => {
+const WysiwygField = ({ onChange, autoFocus, field, errors, value = '', isDisabled }) => {
   const handleChange = value => {
     if (typeof value === 'string') {
       onChange(value);
     }
   };
 
-  const value = serverValue || '';
   const htmlID = `ks-input-${field.path}`;
   const accessError = errors.find(
     error => error instanceof Error && error.name === 'AccessDeniedError'
@@ -63,6 +61,7 @@ const WysiwygField = ({ onChange, autoFocus, field, errors, value: serverValue }
           init={{ ...defaultOptions, auto_focus: autoFocus, ...overrideOptions }}
           onEditorChange={handleChange}
           value={value}
+          disabled={isDisabled}
         />
       </div>
     </FieldContainer>

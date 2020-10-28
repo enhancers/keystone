@@ -1,5 +1,69 @@
 # @arch-ui/fields
 
+## 3.0.5
+
+### Patch Changes
+
+- [`b6e160678`](https://github.com/keystonejs/keystone/commit/b6e160678b449707261a54a9d565b91663784831) [#3671](https://github.com/keystonejs/keystone/pull/3671) Thanks [@renovate](https://github.com/apps/renovate)! - Updated dependency `@primer/octicons-react` to `^11.0.0`.
+
+## 3.0.4
+
+### Patch Changes
+
+- [`5935b89f8`](https://github.com/keystonejs/keystone/commit/5935b89f8862b36f14d09da68f056f759a860f3e) [#3477](https://github.com/keystonejs/keystone/pull/3477) Thanks [@Noviny](https://github.com/Noviny)! - Updating dependencies:
+
+  These changes bring the keystone dev experience inline with installing keystone from npm :D
+
+* [`0fc878fa9`](https://github.com/keystonejs/keystone/commit/0fc878fa918c3196196f943f195ffaa62fce504b) [#3439](https://github.com/keystonejs/keystone/pull/3439) Thanks [@renovate](https://github.com/apps/renovate)! - Updated babel dependencies.
+
+* Updated dependencies [[`5935b89f8`](https://github.com/keystonejs/keystone/commit/5935b89f8862b36f14d09da68f056f759a860f3e), [`0fc878fa9`](https://github.com/keystonejs/keystone/commit/0fc878fa918c3196196f943f195ffaa62fce504b)]:
+  - @arch-ui/lozenge@0.0.17
+  - @arch-ui/theme@0.0.11
+
+## 3.0.3
+
+### Patch Changes
+
+- [`51aef1ef0`](https://github.com/keystonejs/keystone/commit/51aef1ef06a89422e89a6118b7820848d5970669) [#3146](https://github.com/keystonejs/keystone/pull/3146) Thanks [@Vultraz](https://github.com/Vultraz)! - Migrated to @primer/octicons-react v10.
+
+## 3.0.2
+
+### Patch Changes
+
+- [`a8d444b25`](https://github.com/keystonejs/keystone/commit/a8d444b25109f84e9d4659f2a260c5ad65f93393) [#3006](https://github.com/keystonejs/keystone/pull/3006) Thanks [@Vultraz](https://github.com/Vultraz)! - Fixed minor layout issues with the FieldLabel component.
+
+## 3.0.1
+
+### Patch Changes
+
+- [`577b5e69`](https://github.com/keystonejs/keystone/commit/577b5e69ac4f949d1be2a80d8f391cb0a4b1333a) [#2799](https://github.com/keystonejs/keystone/pull/2799) Thanks [@MadeByMike](https://github.com/MadeByMike)! - Upgraded React and Emotion packages.
+
+- Updated dependencies [[`577b5e69`](https://github.com/keystonejs/keystone/commit/577b5e69ac4f949d1be2a80d8f391cb0a4b1333a)]:
+  - @arch-ui/icons@0.1.1
+  - @arch-ui/lozenge@0.0.16
+
+## 3.0.0
+
+### Major Changes
+
+- [`78fda9d7`](https://github.com/keystonejs/keystone/commit/78fda9d7b9a090240c946553cc42ba0bf6b8a88c) [#2775](https://github.com/keystonejs/keystone/pull/2775) Thanks [@Vultraz](https://github.com/Vultraz)! - Cleaned up FieldDescription usage. The `<FieldDescription>` component no longer accepts children and requires a `text` prop:
+
+  `<FieldDescription>Hello World</FieldDescription>` => `<FieldDescription text="Hello World" />`
+
+### Patch Changes
+
+- Updated dependencies [[`9c403c7c`](https://github.com/keystonejs/keystone/commit/9c403c7c273cc915d023bd98986d43cd4ab74477)]:
+  - @arch-ui/icons@0.1.0
+
+## 2.1.5
+
+### Patch Changes
+
+- [`007063c4`](https://github.com/keystonejs/keystone/commit/007063c4f17e6e7038312ed9126eaf91757e7939) [#2616](https://github.com/keystonejs/keystone/pull/2616) Thanks [@JedWatson](https://github.com/JedWatson)! - Improved layout of checkbox fields.
+
+- Updated dependencies [[`63169b6a`](https://github.com/keystonejs/keystone/commit/63169b6a6b6a4dc286cd224b7f871960f2d4b0ad)]:
+  - @arch-ui/lozenge@0.0.15
+
 ## 2.1.4
 
 ### Patch Changes
@@ -87,13 +151,13 @@
 
 ### Patch Changes
 
-- [42c3fbc9](https://github.com/keystonejs/keystone-5/commit/42c3fbc9): Upgrade emotion to 10.0.14
+- [42c3fbc9](https://github.com/keystonejs/keystone/commit/42c3fbc9): Upgrade emotion to 10.0.14
 
 ## 2.0.0
 
 ### Major Changes
 
-- [91fffa1e](https://github.com/keystonejs/keystone-5/commit/91fffa1e):
+- [91fffa1e](https://github.com/keystonejs/keystone/commit/91fffa1e):
 
   - **Blocks**
     - Blocks must now be classes, which implement the `Block` interface.
@@ -109,30 +173,30 @@
 
 ### Major Changes
 
-- [16befb6a](https://github.com/keystonejs/keystone-5/commit/16befb6a):
+- [16befb6a](https://github.com/keystonejs/keystone/commit/16befb6a):
 
   Update the FieldLabel component to take `htmlFor`, `field` and `errors` as props in order to have a consistent mechanism for surfacing the isRequired flag and any access denied errors.
 
-* Updated dependencies [19fe6c1b](https://github.com/keystonejs/keystone-5/commit/19fe6c1b):
+* Updated dependencies [19fe6c1b](https://github.com/keystonejs/keystone/commit/19fe6c1b):
   - @arch-ui/theme@0.0.5
 
 ## 0.0.5
 
 ### Patch Changes
 
-- [81dc0be5](https://github.com/keystonejs/keystone-5/commit/81dc0be5):
+- [81dc0be5](https://github.com/keystonejs/keystone/commit/81dc0be5):
 
   - Update dependencies
 
 ## 0.0.4
 
-- [patch][e75c105c](https://github.com/keystonejs/keystone-5/commit/e75c105c):
+- [patch][e75c105c](https://github.com/keystonejs/keystone/commit/e75c105c):
 
   - admin revamp
 
 ## 0.0.3
 
-- [patch][7417ea3a](https://github.com/keystonejs/keystone-5/commit/7417ea3a):
+- [patch][7417ea3a](https://github.com/keystonejs/keystone/commit/7417ea3a):
 
   - Update patch-level dependencies
 

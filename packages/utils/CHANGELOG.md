@@ -1,5 +1,23 @@
 # @keystonejs/utils
 
+## 5.4.3
+
+### Patch Changes
+
+- [`6cb4476ff`](https://github.com/keystonejs/keystone/commit/6cb4476ff15923933862c1cd7d4b1ade794106c6) [#3481](https://github.com/keystonejs/keystone/pull/3481) Thanks [@Noviny](https://github.com/Noviny)! - Updated dependencies through a major version - this shouldn't require change by consumers.
+
+## 5.4.2
+
+### Patch Changes
+
+- [`69d7f2e50`](https://github.com/keystonejs/keystone/commit/69d7f2e50ef2325c0d3b02b8bb5c310590796fed) [#3183](https://github.com/keystonejs/keystone/pull/3183) Thanks [@Vultraz](https://github.com/Vultraz)! - Updated doc comments.
+
+## 5.4.1
+
+### Patch Changes
+
+- [`e0e3e30a`](https://github.com/keystonejs/keystone/commit/e0e3e30a9051741de3f5a0c12ba00f2238d54800) [#2697](https://github.com/keystonejs/keystone/pull/2697) Thanks [@Vultraz](https://github.com/Vultraz)! - Converted some stray promise chains to async/await.
+
 ## 5.4.0
 
 ### Minor Changes
@@ -60,7 +78,7 @@
 
 ### Major Changes
 
-- [`7b4ed362`](https://github.com/keystonejs/keystone-5/commit/7b4ed3623f5774d7783c39962bfa1ce97938e310) [#1821](https://github.com/keystonejs/keystone-5/pull/1821) Thanks [@jesstelford](https://github.com/jesstelford)! - Release @keystonejs/\* packages (つ＾ ◡ ＾)つ
+- [`7b4ed362`](https://github.com/keystonejs/keystone/commit/7b4ed3623f5774d7783c39962bfa1ce97938e310) [#1821](https://github.com/keystonejs/keystone/pull/1821) Thanks [@jesstelford](https://github.com/jesstelford)! - Release @keystonejs/\* packages (つ＾ ◡ ＾)つ
 
   - This is the first release of `@keystonejs/*` packages (previously `@keystone-alpha/*`).
   - All packages in the `@keystone-alpha` namespace are now available in the `@keystonejs` namespace, starting at version `5.0.0`.
@@ -72,25 +90,25 @@
 
 ### Minor Changes
 
-- [b2c5277e](https://github.com/keystonejs/keystone-5/commit/b2c5277e): Add a compose() function to utils.
+- [b2c5277e](https://github.com/keystonejs/keystone/commit/b2c5277e): Add a compose() function to utils.
 
 ## 3.1.0
 
 ### Minor Changes
 
-- [857386db](https://github.com/keystonejs/keystone-5/commit/857386db): Add `filterValues(object, predicate)` to remove entries from an object where the value does not match the predicate.
+- [857386db](https://github.com/keystonejs/keystone/commit/857386db): Add `filterValues(object, predicate)` to remove entries from an object where the value does not match the predicate.
 
 ## 3.0.2
 
 ### Patch Changes
 
-- [42c3fbc9](https://github.com/keystonejs/keystone-5/commit/42c3fbc9): Upgrade promise utility dependencies
+- [42c3fbc9](https://github.com/keystonejs/keystone/commit/42c3fbc9): Upgrade promise utility dependencies
 
 ## 3.0.1
 
 ### Patch Changes
 
-- [19fe6c1b](https://github.com/keystonejs/keystone-5/commit/19fe6c1b):
+- [19fe6c1b](https://github.com/keystonejs/keystone/commit/19fe6c1b):
 
   Move frontmatter in docs into comments
 
@@ -98,35 +116,35 @@
 
 ### Major Changes
 
-- [b7a2ea9c](https://github.com/keystonejs/keystone-5/commit/b7a2ea9c):
+- [b7a2ea9c](https://github.com/keystonejs/keystone/commit/b7a2ea9c):
 
   - Remove `checkRequiredConfig`, `fixConfigKeys` and `camelize`.
 
 ### Minor Changes
 
-- [c9102446](https://github.com/keystonejs/keystone-5/commit/c9102446):
+- [c9102446](https://github.com/keystonejs/keystone/commit/c9102446):
 
   - Add a mechanism for loading multiple Suspense-aware components in parallel
 
 ### Patch Changes
 
-- [81dc0be5](https://github.com/keystonejs/keystone-5/commit/81dc0be5):
+- [81dc0be5](https://github.com/keystonejs/keystone/commit/81dc0be5):
 
   - Update dependencies
 
 ## 2.0.0
 
-- [major][98c02a46](https://github.com/keystonejs/keystone-5/commit/98c02a46):
+- [major][98c02a46](https://github.com/keystonejs/keystone/commit/98c02a46):
 
   - Distribute CommonJS & ESM builds of the @keystone-alpha/utils package.
 
 ## 1.0.1
 
-- [patch][1f0bc236](https://github.com/keystonejs/keystone-5/commit/1f0bc236):
+- [patch][1f0bc236](https://github.com/keystonejs/keystone/commit/1f0bc236):
 
   - Update the package.json author field to "The Keystone Development Team"
 
-- [patch][9534f98f](https://github.com/keystonejs/keystone-5/commit/9534f98f):
+- [patch][9534f98f](https://github.com/keystonejs/keystone/commit/9534f98f):
 
   - Add README.md to package
 

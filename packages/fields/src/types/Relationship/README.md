@@ -6,9 +6,16 @@ title: Relationship
 
 # Relationship
 
+A link between the current list and others, often paired with a field on the other list.
+The relationships cardinality is determined by the `many` and `isRequired` configuring on either side.
+
+See the [Configuring Relationships](/docs/guides/relationships.md) guide for more information.
+
 ## Usage
 
 ```javascript
+const { Relationship, Text } = require('@keystonejs/fields');
+
 keystone.createList('User', {
   fields: {
     name: { type: Text },
@@ -30,13 +37,13 @@ keystone.createList('Org', {
 });
 ```
 
-### Config
+## Config
 
 | Option     | Type      | Default | Description                                                     |
 | ---------- | --------- | ------- | --------------------------------------------------------------- |
 | `isUnique` | `Boolean` | `false` | Adds a unique index that allows only unique values to be stored |
 
-### Nested Mutations
+## Nested mutations
 
 Using the example list config above,
 the to-many (`User.posts`) and to-single (`User.company`) relationships can be mutated as part of a mutation on items in the parent list
@@ -51,7 +58,7 @@ The available nested mutations:
 | `disconnect`    | Unset the relation (if any) if it matches the given filter. <br/>_Note: the previously set item (if any) is **not** deleted._ | Filter for one or more items, and unset them from the list of related items (if any). <br/>_Note: the previously set items (if any) are **not** deleted._ |
 | `disconnectAll` | Unset the relation (if any). <br/>_Note: the previously set item (if any) is **not** deleted._                                | Unset the list of related items (if any). <br/>_Note: the previously set items (if any) are **not** deleted._                                             |
 
-### Order of execution
+## Order of execution
 
 Nested mutations are executed in the following order:
 
@@ -60,9 +67,9 @@ Nested mutations are executed in the following order:
 3. `create`
 4. `connect`
 
-### Examples
+## Examples
 
-#### Create and append a related item
+### Create and append a related item
 
 Use the `create` nested mutation to create and append an item to a to-many
 relationship:
@@ -73,7 +80,7 @@ relationship:
 # Replace all posts of a given User
 mutation replaceAllPosts {
   updateUser(
-    where: { id: "abc123" },
+    id: "abc123",
     data: {
       posts: {
         create: { title: "Hello World" },
@@ -88,7 +95,7 @@ mutation replaceAllPosts {
 }
 ```
 
-#### Append an existing item
+### Append an existing item
 
 Use the `connect` nested mutation to append an existing item to a to-many
 relationship:
@@ -99,7 +106,7 @@ relationship:
 # Replace the company of a given User
 mutation replaceAllPosts {
   updateUser(
-    where: { id: "abc123" },
+    id: "abc123",
     data: {
       posts: {
         connect: { id: "def345" },
@@ -114,7 +121,7 @@ mutation replaceAllPosts {
 }
 ```
 
-#### Overriding a to-single relationship
+### Overriding a to-single relationship
 
 Using either `create` or `connect` nested mutations is sufficient to override
 the value of a to-single relationship (it's not necessary to use `disconnectAll`
@@ -126,7 +133,7 @@ as is the case for [to-many relationships](#overriding-a-to-many-relationship)):
 # Replace the company of a given User
 mutation replaceAllPosts {
   updateUser(
-    where: { id: "abc123" },
+    id: "abc123",
     data: {
       company: {
         connect: { id: "def345" },
@@ -141,7 +148,7 @@ mutation replaceAllPosts {
 }
 ```
 
-#### Overriding a to-many relationship
+### Overriding a to-many relationship
 
 To completely replace the related items in a to-many list, you can perform a
 `disconnectAll` nested mutation followed by a `create` or `connect` nested
@@ -153,7 +160,7 @@ mutation (thanks to the [order of execution](#order-of-execution)):
 # Replace all posts related to a given User
 mutation replaceAllPosts {
   updateUser(
-    where: { id: "abc123" },
+    id: "abc123",
     data: {
       posts: {
         disconnectAll: true,
@@ -168,5 +175,3 @@ mutation replaceAllPosts {
   }
 }
 ```
-
----

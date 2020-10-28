@@ -116,16 +116,16 @@ function useKeydownHandler(handler) {
 }
 
 function ModalDialogComponent({
-  attachTo,
+  attachTo = typeof document !== 'undefined' ? document.body : null,
   children,
-  closeOnBlanketClick,
-  component,
+  closeOnBlanketClick = false,
+  component = 'div',
   footer,
   heading,
   initialFocus,
   onClose,
   slideInFrom,
-  width,
+  width = 640,
   onKeyDown,
   transitionState,
   isOpen,
@@ -173,23 +173,17 @@ function ModalDialogComponent({
                 <Title>{heading}</Title>
               </Header>
             ) : null}
-            <Body>{children}</Body>
+            <ScrollLock>
+              <Body>{children}</Body>
+            </ScrollLock>
             {footer ? <Footer>{footer}</Footer> : null}
           </Dialog>
         </FocusTrap>
       </Positioner>
-      <ScrollLock />
     </Fragment>,
     attachTo
   );
 }
-
-ModalDialogComponent.defaultProps = {
-  attachTo: typeof document !== 'undefined' ? document.body : null,
-  closeOnBlanketClick: false,
-  component: 'div',
-  width: 640,
-};
 
 const ModalDialog = memo(ModalDialogComponent);
 

@@ -1,5 +1,232 @@
 # @keystonejs/adapter-knex
 
+## 12.0.2
+
+### Patch Changes
+
+- [`c4478b1c7`](https://github.com/keystonejs/keystone/commit/c4478b1c74e205232ecb321de91f0eda0e78b819) [#4008](https://github.com/keystonejs/keystone/pull/4008) Thanks [@Neonox31](https://github.com/Neonox31)! - Fixed bug in `.dropDatabase()`, relationship join tables are now correctly dropped when using a non-default `schemaName`.
+
+## 12.0.1
+
+### Patch Changes
+
+- [`767a02a76`](https://github.com/keystonejs/keystone/commit/767a02a76d787a871832075402722c0df5213549) [#3868](https://github.com/keystonejs/keystone/pull/3868) Thanks [@renovate](https://github.com/apps/renovate)! - Updated dependency `pg` to `^8.4.0`.
+
+- Updated dependencies [[`20c921c80`](https://github.com/keystonejs/keystone/commit/20c921c805f9ba8e779d0af584e6ff036c264bd4)]:
+  - @keystonejs/keystone@17.1.0
+
+## 12.0.0
+
+### Major Changes
+
+- [`e5efd0ef3`](https://github.com/keystonejs/keystone/commit/e5efd0ef3d6943534cb6c728afe5dbf0caf43e74) [#3684](https://github.com/keystonejs/keystone/pull/3684) Thanks [@mitchellhamilton](https://github.com/mitchellhamilton)! - Make `id` field on GraphQL output type non-nullable when using the default id field type
+
+### Patch Changes
+
+- [`85fa68456`](https://github.com/keystonejs/keystone/commit/85fa684565d8c9c40036d4544b3c0235dbbd327b) [#3802](https://github.com/keystonejs/keystone/pull/3802) Thanks [@renovate](https://github.com/apps/renovate)! - Updated dependency `knex` to `^0.21.6`.
+
+- Updated dependencies [[`e5efd0ef3`](https://github.com/keystonejs/keystone/commit/e5efd0ef3d6943534cb6c728afe5dbf0caf43e74)]:
+  - @keystonejs/fields-auto-increment@8.0.0
+
+## 11.0.7
+
+### Patch Changes
+
+- [`8c54a34be`](https://github.com/keystonejs/keystone/commit/8c54a34bec0f5f945447a2475f5500415eb154df) [#3740](https://github.com/keystonejs/keystone/pull/3740) Thanks [@timleslie](https://github.com/timleslie)! - Cleaned up internal logic, no functional changes.
+
+* [`3e2ca3a2f`](https://github.com/keystonejs/keystone/commit/3e2ca3a2ffa00cb5aababee572902a78e657ec58) [#3652](https://github.com/keystonejs/keystone/pull/3652) Thanks [@Noviny](https://github.com/Noviny)! - Fixed issue #3341, allowing fieldnames to include `_`, so that field names with an underscore in them can be filtered on.
+
+- [`bf5801070`](https://github.com/keystonejs/keystone/commit/bf5801070568bbcc1ed4f3394a293bfa5bea8b98) [#3768](https://github.com/keystonejs/keystone/pull/3768) Thanks [@tjbp](https://github.com/tjbp)! - Fixed regression in #3616 that caused a failure to fetch the result from a meta count in MariaDB/MySQL.
+
+- Updated dependencies [[`f70c9f1ba`](https://github.com/keystonejs/keystone/commit/f70c9f1ba7452b54a15ab71943a3777d5b6dade4), [`df0687184`](https://github.com/keystonejs/keystone/commit/df068718456d23819a7cae491870be4560b2010d), [`cc56990f2`](https://github.com/keystonejs/keystone/commit/cc56990f2e9a4ecf0c112362e8d472b9286f76bc)]:
+  - @keystonejs/fields-auto-increment@7.0.0
+  - @keystonejs/keystone@17.0.0
+
+## 11.0.6
+
+### Patch Changes
+
+- Updated dependencies [[`83007be79`](https://github.com/keystonejs/keystone/commit/83007be798ebd751d7eb708cde366dc35999af72), [`38e3ad9c3`](https://github.com/keystonejs/keystone/commit/38e3ad9c3e7124d06f11c7046821c857cf7f9ad2), [`304701d7c`](https://github.com/keystonejs/keystone/commit/304701d7c23e98c8dc40c0f3f5512a0370107c06), [`7a1f8bbdc`](https://github.com/keystonejs/keystone/commit/7a1f8bbdcdf68c9579e17db77fa826e811abcab4), [`d95010eea`](https://github.com/keystonejs/keystone/commit/d95010eea35f40274f412dad5c2fed6b16ae6c60), [`104232785`](https://github.com/keystonejs/keystone/commit/104232785aac856be6a3ba55f8fa0fd8357237ed)]:
+  - @keystonejs/keystone@16.0.0
+
+## 11.0.5
+
+### Patch Changes
+
+- [`4f6883dc3`](https://github.com/keystonejs/keystone/commit/4f6883dc38962805f96256f9fdf42fb77bb3326a) [#3610](https://github.com/keystonejs/keystone/pull/3610) Thanks [@renovate](https://github.com/apps/renovate)! - Updated dependency `prettier` to `^2.1.1`.
+
+* [`9dae7a5d0`](https://github.com/keystonejs/keystone/commit/9dae7a5d00a62cd0b7a4470695adc5e1678db3dc) [#3616](https://github.com/keystonejs/keystone/pull/3616) Thanks [@timleslie](https://github.com/timleslie)! - Fixed a query generation bug when performing `count` operations on `1:1` relationships with a filter.
+
+* Updated dependencies [[`4f6883dc3`](https://github.com/keystonejs/keystone/commit/4f6883dc38962805f96256f9fdf42fb77bb3326a), [`d7eac6629`](https://github.com/keystonejs/keystone/commit/d7eac662956fc2dffd9ea5cfedf60e51ecc1b80d), [`77aa2d7d1`](https://github.com/keystonejs/keystone/commit/77aa2d7d156a83759a7f3c26e8c5bd019966b054), [`d07f6bfb6`](https://github.com/keystonejs/keystone/commit/d07f6bfb6b3bd65036c2030d2758abdf4eca1a9e)]:
+  - @keystonejs/fields-auto-increment@6.0.3
+  - @keystonejs/keystone@15.0.0
+
+## 11.0.4
+
+### Patch Changes
+
+- [`e9bc4367a`](https://github.com/keystonejs/keystone/commit/e9bc4367ac31f3fe3a2898198c600c76c42165b2) [#3513](https://github.com/keystonejs/keystone/pull/3513) Thanks [@renovate](https://github.com/apps/renovate)! - Updated dependency `knex` to `^0.21.5`.
+
+* [`003b856e6`](https://github.com/keystonejs/keystone/commit/003b856e686cc1ee0f984c1acf024c1fa0c27837) [#3526](https://github.com/keystonejs/keystone/pull/3526) Thanks [@renovate](https://github.com/apps/renovate)! - Updated dependency `pg` to `^8.3.3`.
+
+- [`16fba3b98`](https://github.com/keystonejs/keystone/commit/16fba3b98271410e570a370f610da7cd0686f294) [#3550](https://github.com/keystonejs/keystone/pull/3550) Thanks [@timleslie](https://github.com/timleslie)! - Removed unused dependencies.
+
+- Updated dependencies [[`cd15192cd`](https://github.com/keystonejs/keystone/commit/cd15192cdae5e476f64a257c196ca569a9440d5a), [`7bfdb79ee`](https://github.com/keystonejs/keystone/commit/7bfdb79ee43235418f098e5fe7412968dcf6c397), [`6c97a5534`](https://github.com/keystonejs/keystone/commit/6c97a5534e8a18d15aeac8b0471810fdd4d04f80), [`2e6a06202`](https://github.com/keystonejs/keystone/commit/2e6a06202299b36c36fd3efd895f2280479eac31), [`d71f98791`](https://github.com/keystonejs/keystone/commit/d71f987917509a206b1e0a994dbc6641a7cf4e06), [`28b88abd3`](https://github.com/keystonejs/keystone/commit/28b88abd369f0df12eae72107db7c24323eda4b5)]:
+  - @keystonejs/keystone@14.0.2
+  - @keystonejs/fields-auto-increment@6.0.2
+
+## 11.0.3
+
+### Patch Changes
+
+- [`6cb4476ff`](https://github.com/keystonejs/keystone/commit/6cb4476ff15923933862c1cd7d4b1ade794106c6) [#3481](https://github.com/keystonejs/keystone/pull/3481) Thanks [@Noviny](https://github.com/Noviny)! - Updated dependencies through a major version - this shouldn't require change by consumers.
+
+* [`5935b89f8`](https://github.com/keystonejs/keystone/commit/5935b89f8862b36f14d09da68f056f759a860f3e) [#3477](https://github.com/keystonejs/keystone/pull/3477) Thanks [@Noviny](https://github.com/Noviny)! - Updating dependencies:
+
+  These changes bring the keystone dev experience inline with installing keystone from npm :D
+
+- [`096d13fc2`](https://github.com/keystonejs/keystone/commit/096d13fc25696ed1769cf817b705dfd80da601b2) [#3463](https://github.com/keystonejs/keystone/pull/3463) Thanks [@timleslie](https://github.com/timleslie)! - Fixed bug when querying through a many-to-one-to-one relationship chain.
+
+- Updated dependencies [[`6cb4476ff`](https://github.com/keystonejs/keystone/commit/6cb4476ff15923933862c1cd7d4b1ade794106c6), [`5935b89f8`](https://github.com/keystonejs/keystone/commit/5935b89f8862b36f14d09da68f056f759a860f3e), [`bbeb0f7d3`](https://github.com/keystonejs/keystone/commit/bbeb0f7d3511a8d8defe9bc2d86ea4a0ae0131fe), [`877a5a90d`](https://github.com/keystonejs/keystone/commit/877a5a90d608f0a13b6c0ea103cb96e3ac2caacc), [`7f04d9dd2`](https://github.com/keystonejs/keystone/commit/7f04d9dd21ad792b540d9e0a5d83356c091597ad)]:
+  - @keystonejs/keystone@14.0.1
+  - @keystonejs/utils@5.4.3
+  - @keystonejs/fields-auto-increment@6.0.1
+
+## 11.0.2
+
+### Patch Changes
+
+- Updated dependencies [[`25f50dadc`](https://github.com/keystonejs/keystone/commit/25f50dadc07d888de18d485244c84d17462dce2e), [`d38c9174f`](https://github.com/keystonejs/keystone/commit/d38c9174f8146ad6e268be87cf5d54d5074bc593), [`f714ac1e2`](https://github.com/keystonejs/keystone/commit/f714ac1e2c49ef44d756e35042bdb7da6db589a7), [`c243839c1`](https://github.com/keystonejs/keystone/commit/c243839c12abc8cffe8ff788fe57dcb880dc3a41)]:
+  - @keystonejs/keystone@14.0.0
+  - @keystonejs/fields-auto-increment@6.0.0
+
+## 11.0.1
+
+### Patch Changes
+
+- Updated dependencies [[`af5171563`](https://github.com/keystonejs/keystone/commit/af51715637433bcdd2538835c98ac71a8eb86122), [`271f1a40b`](https://github.com/keystonejs/keystone/commit/271f1a40b97e03aaa00ce920a6515b8f18669428), [`22b4a5c1a`](https://github.com/keystonejs/keystone/commit/22b4a5c1a13c3cca47190467be9d56e836f180f1), [`afe661e60`](https://github.com/keystonejs/keystone/commit/afe661e607539df13584d460e1016ba0fa883cb8), [`04f9be03d`](https://github.com/keystonejs/keystone/commit/04f9be03de7fe82035205379208511c6e49890b3), [`ef7074977`](https://github.com/keystonejs/keystone/commit/ef70749775ce1565eafd7f94c3d7438c8ebd474e), [`e07c42d4e`](https://github.com/keystonejs/keystone/commit/e07c42d4ec75d5703bec4a2e419a42d18bed90ca), [`5a3849806`](https://github.com/keystonejs/keystone/commit/5a3849806d00e62b722461d02f6e4639bc45c1eb), [`086b6baec`](https://github.com/keystonejs/keystone/commit/086b6baecdb8730bd7ae7001a96ae881fb13bac2)]:
+  - @keystonejs/keystone@13.0.0
+  - @keystonejs/fields-auto-increment@5.1.12
+
+## 11.0.0
+
+### Major Changes
+
+- [`c9ca62876`](https://github.com/keystonejs/keystone/commit/c9ca628765f1ecb599c8556de2d31567ddf12504) [#3223](https://github.com/keystonejs/keystone/pull/3223) Thanks [@timleslie](https://github.com/timleslie)! - Adapters must now be explicitly configured with a connection string. A default based on the project name is no longer used. See the docs for [`adapter-knex`](/packages/adapter-knex/README.md) and [`adapter-mongoose`](/packages/adapter-mongoose/README.md).
+
+### Patch Changes
+
+- [`51c898537`](https://github.com/keystonejs/keystone/commit/51c898537c7fdc8578fa47eade6a499594b0d154) [#3225](https://github.com/keystonejs/keystone/pull/3225) Thanks [@BikramjeetSingh](https://github.com/BikramjeetSingh)! - Fix bug where fields that contain underscores cause runtime error in Knex Adapter
+
+* [`7bdec6446`](https://github.com/keystonejs/keystone/commit/7bdec6446ed97fa962bb96abe07975bb23c6ec7a) [#3264](https://github.com/keystonejs/keystone/pull/3264) Thanks [@timleslie](https://github.com/timleslie)! - Fixed bug where `_is_null` queries on relationship fields could generate invalid SQL in `one-to-one` relationships.
+
+* Updated dependencies [[`5ad84ccd8`](https://github.com/keystonejs/keystone/commit/5ad84ccd8d008188e293629e90a4d7e7fde55333), [`61cdafe20`](https://github.com/keystonejs/keystone/commit/61cdafe20e0a22b5a1f9b6a2dcc4aefa45a26902), [`8480f889a`](https://github.com/keystonejs/keystone/commit/8480f889a492d83ee805f19877d49fd112117939), [`49984caae`](https://github.com/keystonejs/keystone/commit/49984caaec803ed86b027c9634ac6b3f671e9ba7), [`02f069f0b`](https://github.com/keystonejs/keystone/commit/02f069f0b6e28ccfe6d5cdeb59ab01bde27a655e), [`e114894d1`](https://github.com/keystonejs/keystone/commit/e114894d1bbcea8940cf14486fc336aa8d112da7), [`5fc97cbf4`](https://github.com/keystonejs/keystone/commit/5fc97cbf4489587a3a8cb38c04ba81fc2cb1fc5a), [`56e1798d6`](https://github.com/keystonejs/keystone/commit/56e1798d6815723cfba01e6d7dc6b4fe73d4447b), [`06f86c6f5`](https://github.com/keystonejs/keystone/commit/06f86c6f5c573411f0efda565a269d1d7ccb3c66), [`81b4df318`](https://github.com/keystonejs/keystone/commit/81b4df3182fc63c583e3fae5c05c528b678cab95), [`e6909b003`](https://github.com/keystonejs/keystone/commit/e6909b0037c9d3dc4fc6131da7968a424ce02be9), [`3ce644d5f`](https://github.com/keystonejs/keystone/commit/3ce644d5f2b6e674adb2f155c0e729536079347a), [`622cc7d69`](https://github.com/keystonejs/keystone/commit/622cc7d6976ecb71f5b135c931ac0fcb4afdb1c7)]:
+  - @keystonejs/keystone@12.0.0
+  - @keystonejs/fields-auto-increment@5.1.11
+
+## 10.1.0
+
+### Minor Changes
+
+- [`7c38e2671`](https://github.com/keystonejs/keystone/commit/7c38e267143491f38699326f02764f40f337d416) [#3085](https://github.com/keystonejs/keystone/pull/3085) Thanks [@MadeByMike](https://github.com/MadeByMike)! - Added a new \_verifyTables method to the knex adapter. This is then used by the Keystone CLI to warn when tables have not been initialised or the database might need a migration.
+
+### Patch Changes
+
+- [`835866e1a`](https://github.com/keystonejs/keystone/commit/835866e1a2954113d809c9f0bac186485ac6212b) [#3133](https://github.com/keystonejs/keystone/pull/3133) Thanks [@timleslie](https://github.com/timleslie)! - Fixed bug with deleting items in lists with a one-to-many one-sided relationship.
+
+- Updated dependencies [[`8df24d2ab`](https://github.com/keystonejs/keystone/commit/8df24d2ab4bed8a7fc1a856c20a571781dd7c04e), [`33046a66f`](https://github.com/keystonejs/keystone/commit/33046a66f33a82cf099880303b44d9736344667d), [`7c38e2671`](https://github.com/keystonejs/keystone/commit/7c38e267143491f38699326f02764f40f337d416)]:
+  - @keystonejs/keystone@11.0.0
+
+## 10.0.2
+
+### Patch Changes
+
+- Updated dependencies [[`4104e1f15`](https://github.com/keystonejs/keystone/commit/4104e1f15c545c05f680e8d16413862e875ca57a), [`cbfc67470`](https://github.com/keystonejs/keystone/commit/cbfc6747011329f7210e79ebe228f44ed8607321), [`aacc4a7f8`](https://github.com/keystonejs/keystone/commit/aacc4a7f8f88c242ae4bd784330d25056842d3fb), [`3204ae785`](https://github.com/keystonejs/keystone/commit/3204ae78576b0ab5649d5f5ae9cfbb1def347af1), [`4b06157be`](https://github.com/keystonejs/keystone/commit/4b06157be6cffde2d88969823f7c410fefd82317), [`839666e25`](https://github.com/keystonejs/keystone/commit/839666e25d8bffefd034e6344e11d72dd43b925b), [`64c0d68ac`](https://github.com/keystonejs/keystone/commit/64c0d68acb1ee969097a8fe59b5c296473790c5c), [`b696b2acb`](https://github.com/keystonejs/keystone/commit/b696b2acbf7def8dba41f46ccef5ff852703b95a), [`d970580e1`](https://github.com/keystonejs/keystone/commit/d970580e14904ba2f2ac5e969257e71f77ab67d7)]:
+  - @keystonejs/keystone@10.0.0
+  - @keystonejs/logger@5.1.2
+  - @keystonejs/fields-auto-increment@5.1.9
+
+## 10.0.1
+
+### Patch Changes
+
+- [`63e00d80`](https://github.com/keystonejs/keystone/commit/63e00d805f3653863002befdaeda74c711f36f6b) [#2973](https://github.com/keystonejs/keystone/pull/2973) Thanks [@timleslie](https://github.com/timleslie)! - Fixed a bug which could lead to data loss (knex adapter only) when deleting items from a list which was the `1` side of a `1:N` relationship.
+
+## 10.0.0
+
+### Major Changes
+
+- [`babed628`](https://github.com/keystonejs/keystone/commit/babed628a408d7da39990a4c89a19828468555a8) [#2862](https://github.com/keystonejs/keystone/pull/2862) Thanks [@Vultraz](https://github.com/Vultraz)! - Updated dependencies `knex` from `.0.20.6` to `0.21.1` and`pg` from `7.17.0` to `8.0.3`.
+
+### Minor Changes
+
+- [`9bad0e5f`](https://github.com/keystonejs/keystone/commit/9bad0e5fe67d2379537f4cb145058c6c809b3533) [#2660](https://github.com/keystonejs/keystone/pull/2660) Thanks [@Vultraz](https://github.com/Vultraz)! - Added new `sortBy` query argument.
+
+  Each list now has an additional `Sort<List>By` enum type that represents the valid sorting options for all orderable fields in the list. `sortBy` takes one or more of these enum types, allowing for multi-field/column sorting.
+
+### Patch Changes
+
+- Updated dependencies [[`12126788`](https://github.com/keystonejs/keystone/commit/121267885eb3e279eb5b6d035568f547323dd245), [`e0e3e30a`](https://github.com/keystonejs/keystone/commit/e0e3e30a9051741de3f5a0c12ba00f2238d54800), [`c8e52f3b`](https://github.com/keystonejs/keystone/commit/c8e52f3ba892269922c1ed3af0c2114f07387704), [`2a1e4f49`](https://github.com/keystonejs/keystone/commit/2a1e4f49d7f234c49e5b04440ff786ddf3e9e7ed), [`9e2e0071`](https://github.com/keystonejs/keystone/commit/9e2e00715aff50f2ddfedf3dbc14f390275ff23b), [`b5c44934`](https://github.com/keystonejs/keystone/commit/b5c4493442c5e4cfeba23c058a9a6819c628aab9), [`0fbc5b98`](https://github.com/keystonejs/keystone/commit/0fbc5b989a9f96248d1bd7f2f589fe77cb1d8f7d), [`e3d46ce4`](https://github.com/keystonejs/keystone/commit/e3d46ce4bd9f9ec8808ab3194672c6849e624e27), [`da1359df`](https://github.com/keystonejs/keystone/commit/da1359dfc1bff7e27505eff876efe3a0865bae2d), [`9bad0e5f`](https://github.com/keystonejs/keystone/commit/9bad0e5fe67d2379537f4cb145058c6c809b3533)]:
+  - @keystonejs/keystone@9.0.0
+  - @keystonejs/utils@5.4.1
+  - @keystonejs/fields-auto-increment@5.1.7
+
+## 9.0.3
+
+### Patch Changes
+
+- [`875aa0ed`](https://github.com/keystonejs/keystone/commit/875aa0ed787d901061aa0409160a360546014df3) [#2796](https://github.com/keystonejs/keystone/pull/2796) Thanks [@timleslie](https://github.com/timleslie)! - Fixed a bug with updating one-to-one relationship values.
+
+## 9.0.2
+
+### Patch Changes
+
+- [`98be4b48`](https://github.com/keystonejs/keystone/commit/98be4b4858f0f2cd672910acc5e6cc0c079ce21f) [#2785](https://github.com/keystonejs/keystone/pull/2785) Thanks [@timleslie](https://github.com/timleslie)! - Fixed a bug with `where` queries again one-to-one relationships.
+
+- Updated dependencies [[`6a27fcf1`](https://github.com/keystonejs/keystone/commit/6a27fcf1896c5a745308346e5b0e66dd8bdd57a3), [`98e9f6d1`](https://github.com/keystonejs/keystone/commit/98e9f6d16e16ee13d2a8a22eb25be9cd2afc6fc0)]:
+  - @keystonejs/keystone@8.1.2
+
+## 9.0.1
+
+### Patch Changes
+
+- [`c1345884`](https://github.com/keystonejs/keystone/commit/c134588491c73fabbd5186df1787bce5aec5c7c7) [#2666](https://github.com/keystonejs/keystone/pull/2666) Thanks [@timleslie](https://github.com/timleslie)! - Fixed a bug with `_allItemsMeta { count }` queries on one-to-one relationships.
+
+## 9.0.0
+
+### Major Changes
+
+- [`fd685241`](https://github.com/keystonejs/keystone/commit/fd68524135025e4d800b4a98932916736dd50e9d) [#2000](https://github.com/keystonejs/keystone/pull/2000) Thanks [@timleslie](https://github.com/timleslie)! - ## Release - Arcade
+
+  This release introduces a **new and improved data schema** for Keystone.
+  The new data schema simplifies the way your data is stored and will unlock the development of new functionality within Keystone.
+
+  > **Important:** You will need to make changes to your database to take advantage of the new data schema. Please read the full [release notes](https://www.keystonejs.com/discussions/new-data-schema) for instructions on updating your database.
+
+### Patch Changes
+
+- Updated dependencies [[`fd685241`](https://github.com/keystonejs/keystone/commit/fd68524135025e4d800b4a98932916736dd50e9d)]:
+  - @keystonejs/keystone@8.0.0
+  - @keystonejs/fields-auto-increment@5.1.6
+
+## 8.0.0
+
+### Major Changes
+
+- [`2ae2bd47`](https://github.com/keystonejs/keystone/commit/2ae2bd47eb54a816cfd4c8cd178c460729cbc258) [#2623](https://github.com/keystonejs/keystone/pull/2623) Thanks [@maryam-mv](https://github.com/maryam-mv)! - Updated @sindresorhus/slugify to fix a problem where it was producing unexpected output, eg. adding unexpected underscores: 'NAME1 Website' => 'nam_e1_website'. The slugify output for db name may be different with this change. For the above example, the output will now be 'name_1_website' for the same string.
+
+  If your database name changes unexpectedly, you can add an environment variable called `DATABASE_URL` with a full path to the database. For more information on configuring database connections read the documentation for the [Knex adapter](https://v5.keystonejs.com/keystonejs/adapter-knex/#knexoptions) or [Mongoose adapter](https://v5.keystonejs.com/keystonejs/adapter-mongoose/#mongoose-database-adapter).
+
+  If you are using the `Slug` field type, in some edge-cases, slugs may change when saved after this update. You can use the `generate` option on the slug field for [custom slug generation](https://v5.keystonejs.com/keystonejs/fields/src/types/slug/#custom-generate-method) if required.
+
+### Patch Changes
+
+- [`c08c28d2`](https://github.com/keystonejs/keystone/commit/c08c28d22f2c6a2bfa73ab0ea347c9e0da8a9063) [#2593](https://github.com/keystonejs/keystone/pull/2593) Thanks [@jossmac](https://github.com/jossmac)! - Applied a more consistent voice throughout documentation.
+
+- Updated dependencies [[`4a7d1eab`](https://github.com/keystonejs/keystone/commit/4a7d1eabf9b44fac7e16dfe20afdce409986e8dc), [`c08c28d2`](https://github.com/keystonejs/keystone/commit/c08c28d22f2c6a2bfa73ab0ea347c9e0da8a9063), [`3407fa68`](https://github.com/keystonejs/keystone/commit/3407fa68b91d7ebb3e7288c7e95631013fe12535), [`c2b1b725`](https://github.com/keystonejs/keystone/commit/c2b1b725a9474348964a4ac2e0f5b4aaf1a7f486)]:
+  - @keystonejs/keystone@7.1.0
+  - @keystonejs/fields-auto-increment@5.1.5
+
 ## 7.0.0
 
 ### Major Changes
@@ -161,7 +388,7 @@
 
 ### Major Changes
 
-- [`7b4ed362`](https://github.com/keystonejs/keystone-5/commit/7b4ed3623f5774d7783c39962bfa1ce97938e310) [#1821](https://github.com/keystonejs/keystone-5/pull/1821) Thanks [@jesstelford](https://github.com/jesstelford)! - Release @keystonejs/\* packages (つ＾ ◡ ＾)つ
+- [`7b4ed362`](https://github.com/keystonejs/keystone/commit/7b4ed3623f5774d7783c39962bfa1ce97938e310) [#1821](https://github.com/keystonejs/keystone/pull/1821) Thanks [@jesstelford](https://github.com/jesstelford)! - Release @keystonejs/\* packages (つ＾ ◡ ＾)つ
 
   - This is the first release of `@keystonejs/*` packages (previously `@keystone-alpha/*`).
   - All packages in the `@keystone-alpha` namespace are now available in the `@keystonejs` namespace, starting at version `5.0.0`.
@@ -169,7 +396,7 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`7b4ed362`](https://github.com/keystonejs/keystone-5/commit/7b4ed3623f5774d7783c39962bfa1ce97938e310)]:
+- Updated dependencies [[`7b4ed362`](https://github.com/keystonejs/keystone/commit/7b4ed3623f5774d7783c39962bfa1ce97938e310)]:
   - @keystonejs/fields-auto-increment@5.0.0
   - @keystonejs/keystone@5.0.0
   - @keystonejs/logger@5.0.0
@@ -181,9 +408,9 @@
 
 ### Patch Changes
 
-- [`768420f5`](https://github.com/keystonejs/keystone-5/commit/768420f567c244d57a4e2a3aaafe628ea9813d9d) [#1781](https://github.com/keystonejs/keystone-5/pull/1781) Thanks [@simonswiss](https://github.com/simonswiss)! - changing require path to "@keystone-alpha" instead of "@keystonejs"
+- [`768420f5`](https://github.com/keystonejs/keystone/commit/768420f567c244d57a4e2a3aaafe628ea9813d9d) [#1781](https://github.com/keystonejs/keystone/pull/1781) Thanks [@simonswiss](https://github.com/simonswiss)! - changing require path to "@keystone-alpha" instead of "@keystonejs"
 
-- Updated dependencies [[`0a36b0f4`](https://github.com/keystonejs/keystone-5/commit/0a36b0f403da73a76106b5e14940a789466b4f94), [`3bc02545`](https://github.com/keystonejs/keystone-5/commit/3bc025452fb8e6e69790bdbee032ddfdeeb7dabb), [`a48281ba`](https://github.com/keystonejs/keystone-5/commit/a48281ba605bf5bebc89fcbb36d3e69c17182eec), [`effc1f63`](https://github.com/keystonejs/keystone-5/commit/effc1f639d5824720b7a9d82c2ee881d77acb901)]:
+- Updated dependencies [[`0a36b0f4`](https://github.com/keystonejs/keystone/commit/0a36b0f403da73a76106b5e14940a789466b4f94), [`3bc02545`](https://github.com/keystonejs/keystone/commit/3bc025452fb8e6e69790bdbee032ddfdeeb7dabb), [`a48281ba`](https://github.com/keystonejs/keystone/commit/a48281ba605bf5bebc89fcbb36d3e69c17182eec), [`effc1f63`](https://github.com/keystonejs/keystone/commit/effc1f639d5824720b7a9d82c2ee881d77acb901)]:
   - @keystone-alpha/keystone@16.1.0
   - @keystone-alpha/fields-auto-increment@2.0.5
 
@@ -191,13 +418,13 @@
 
 ### Patch Changes
 
-- [`64ac0665`](https://github.com/keystonejs/keystone-5/commit/64ac0665a0b8b52a7c68678f6d478c8206d82e95) [#1770](https://github.com/keystonejs/keystone-5/pull/1770) Thanks [@MadeByMike](https://github.com/MadeByMike)! - Fixes the help text shown when no db is initialised
+- [`64ac0665`](https://github.com/keystonejs/keystone/commit/64ac0665a0b8b52a7c68678f6d478c8206d82e95) [#1770](https://github.com/keystonejs/keystone/pull/1770) Thanks [@MadeByMike](https://github.com/MadeByMike)! - Fixes the help text shown when no db is initialised
 
 ## 6.0.0
 
 ### Major Changes
 
-- [`6d7d0df0`](https://github.com/keystonejs/keystone-5/commit/6d7d0df0515c3aa21c7d24db17919ddbb5701ce9) [#1729](https://github.com/keystonejs/keystone-5/pull/1729) Thanks [@timleslie](https://github.com/timleslie)! - This change significantly changes how and when we populate `many`-relationships during queries and mutations.
+- [`6d7d0df0`](https://github.com/keystonejs/keystone/commit/6d7d0df0515c3aa21c7d24db17919ddbb5701ce9) [#1729](https://github.com/keystonejs/keystone/pull/1729) Thanks [@timleslie](https://github.com/timleslie)! - This change significantly changes how and when we populate `many`-relationships during queries and mutations.
   The behaviour of the GraphQL API has not changed, but queries should be more performant, particularly for items with many related items.
   The `existingItem` parameter in hooks will no longer have the `many`-relationship fields populated.
   `List.listQuery()` no longer populates `many` relationship fields.
@@ -205,7 +432,7 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`6d7d0df0`](https://github.com/keystonejs/keystone-5/commit/6d7d0df0515c3aa21c7d24db17919ddbb5701ce9)]:
+- Updated dependencies [[`6d7d0df0`](https://github.com/keystonejs/keystone/commit/6d7d0df0515c3aa21c7d24db17919ddbb5701ce9)]:
   - @keystone-alpha/keystone@16.0.0
   - @keystone-alpha/fields-auto-increment@2.0.4
 
@@ -213,79 +440,79 @@
 
 ### Major Changes
 
-- [6c4df466](https://github.com/keystonejs/keystone-5/commit/6c4df466): `KnexListAdapter.findById()` will no longer populate `many` relationship fields.
+- [6c4df466](https://github.com/keystonejs/keystone/commit/6c4df466): `KnexListAdapter.findById()` will no longer populate `many` relationship fields.
 
 ### Patch Changes
 
-- [84f4dbad](https://github.com/keystonejs/keystone-5/commit/84f4dbad): handle errors better when knex connection is an object
+- [84f4dbad](https://github.com/keystonejs/keystone/commit/84f4dbad): handle errors better when knex connection is an object
 
 ## 4.0.11
 
 ### Patch Changes
 
-- [629e1ea9](https://github.com/keystonejs/keystone-5/commit/629e1ea9): Fix a bug which limited the number of items in a many-relatinoship to 65K
-- [9b532072](https://github.com/keystonejs/keystone-5/commit/9b532072): Rename Keystone to KeystoneJS in docs where possible in docs
+- [629e1ea9](https://github.com/keystonejs/keystone/commit/629e1ea9): Fix a bug which limited the number of items in a many-relatinoship to 65K
+- [9b532072](https://github.com/keystonejs/keystone/commit/9b532072): Rename Keystone to KeystoneJS in docs where possible in docs
 
 ## 4.0.10
 
-- Updated dependencies [42a45bbd](https://github.com/keystonejs/keystone-5/commit/42a45bbd):
+- Updated dependencies [42a45bbd](https://github.com/keystonejs/keystone/commit/42a45bbd):
   - @keystone-alpha/keystone@15.1.0
 
 ## 4.0.9
 
-- Updated dependencies [b61289b4](https://github.com/keystonejs/keystone-5/commit/b61289b4):
-- Updated dependencies [0bba9f07](https://github.com/keystonejs/keystone-5/commit/0bba9f07):
-- Updated dependencies [9ade2b2d](https://github.com/keystonejs/keystone-5/commit/9ade2b2d):
+- Updated dependencies [b61289b4](https://github.com/keystonejs/keystone/commit/b61289b4):
+- Updated dependencies [0bba9f07](https://github.com/keystonejs/keystone/commit/0bba9f07):
+- Updated dependencies [9ade2b2d](https://github.com/keystonejs/keystone/commit/9ade2b2d):
   - @keystone-alpha/keystone@15.0.0
   - @keystone-alpha/fields-auto-increment@2.0.1
 
 ## 4.0.8
 
-- Updated dependencies [decf7319](https://github.com/keystonejs/keystone-5/commit/decf7319):
-- Updated dependencies [89c0d7e9](https://github.com/keystonejs/keystone-5/commit/89c0d7e9):
-- Updated dependencies [89c0d7e9](https://github.com/keystonejs/keystone-5/commit/89c0d7e9):
-- Updated dependencies [a8e9378d](https://github.com/keystonejs/keystone-5/commit/a8e9378d):
+- Updated dependencies [decf7319](https://github.com/keystonejs/keystone/commit/decf7319):
+- Updated dependencies [89c0d7e9](https://github.com/keystonejs/keystone/commit/89c0d7e9):
+- Updated dependencies [89c0d7e9](https://github.com/keystonejs/keystone/commit/89c0d7e9):
+- Updated dependencies [a8e9378d](https://github.com/keystonejs/keystone/commit/a8e9378d):
   - @keystone-alpha/keystone@14.0.0
   - @keystone-alpha/fields-auto-increment@2.0.0
 
 ## 4.0.7
 
-- Updated dependencies [8d0d98c7](https://github.com/keystonejs/keystone-5/commit/8d0d98c7):
+- Updated dependencies [8d0d98c7](https://github.com/keystonejs/keystone/commit/8d0d98c7):
   - @keystone-alpha/keystone@13.0.0
 
 ## 4.0.6
 
 ### Patch Changes
 
-- [7e280f57](https://github.com/keystonejs/keystone-5/commit/7e280f57): Updates warning message when knex cannot find a database
+- [7e280f57](https://github.com/keystonejs/keystone/commit/7e280f57): Updates warning message when knex cannot find a database
 
 ## 4.0.5
 
-- Updated dependencies [33001656](https://github.com/keystonejs/keystone-5/commit/33001656):
+- Updated dependencies [33001656](https://github.com/keystonejs/keystone/commit/33001656):
   - @keystone-alpha/keystone@12.0.0
 
 ## 4.0.4
 
-- Updated dependencies [e42fdb4a](https://github.com/keystonejs/keystone-5/commit/e42fdb4a):
+- Updated dependencies [e42fdb4a](https://github.com/keystonejs/keystone/commit/e42fdb4a):
   - @keystone-alpha/keystone@11.0.0
 
 ## 4.0.3
 
-- Updated dependencies [b86f0e26](https://github.com/keystonejs/keystone-5/commit/b86f0e26):
+- Updated dependencies [b86f0e26](https://github.com/keystonejs/keystone/commit/b86f0e26):
   - @keystone-alpha/keystone@10.5.0
 
 ## 4.0.2
 
 ### Patch Changes
 
-- [5631ce3c](https://github.com/keystonejs/keystone-5/commit/5631ce3c): Faster Knex query generation
-- [b8d30f57](https://github.com/keystonejs/keystone-5/commit/b8d30f57): Minor performance improvements to Knex adapter
+- [5631ce3c](https://github.com/keystonejs/keystone/commit/5631ce3c): Faster Knex query generation
+- [b8d30f57](https://github.com/keystonejs/keystone/commit/b8d30f57): Minor performance improvements to Knex adapter
 
 ## 4.0.1
 
 ### Patch Changes
 
-- [3eeb07c7](https://github.com/keystonejs/keystone-5/commit/3eeb07c7): - Re-instate default config for Knex adapter
+- [3eeb07c7](https://github.com/keystonejs/keystone/commit/3eeb07c7): - Re-instate default config for Knex adapter
   - Throw the correct error object when a connection error occurs in the Knex
     Database
 
@@ -293,43 +520,43 @@
 
 ### Major Changes
 
-- [144e6e86](https://github.com/keystonejs/keystone-5/commit/144e6e86): - API Changes to Adapters: - Configs are now passed directly to the adapters rather than via `adapterConnectOptions`. - Default connections strings changed for both Knex and Mongoose adapters to be more inline with system defaults. - `keystone.connect()` no longer accepts a `to` paramter - the connection options must be passed to the adapter constructor (as above).
+- [144e6e86](https://github.com/keystonejs/keystone/commit/144e6e86): - API Changes to Adapters: - Configs are now passed directly to the adapters rather than via `adapterConnectOptions`. - Default connections strings changed for both Knex and Mongoose adapters to be more inline with system defaults. - `keystone.connect()` no longer accepts a `to` paramter - the connection options must be passed to the adapter constructor (as above).
 
 ### Patch Changes
 
-- [87155453](https://github.com/keystonejs/keystone-5/commit/87155453): Refactor Knex query builder to fix many-to-many filtering in complex queries, and reduce the number of database calls
-- [e049cfcb](https://github.com/keystonejs/keystone-5/commit/e049cfcb): Knex adapter is smarter about default values
+- [87155453](https://github.com/keystonejs/keystone/commit/87155453): Refactor Knex query builder to fix many-to-many filtering in complex queries, and reduce the number of database calls
+- [e049cfcb](https://github.com/keystonejs/keystone/commit/e049cfcb): Knex adapter is smarter about default values
 
 ## 3.0.0
 
 ### Major Changes
 
-- [42c3fbc9](https://github.com/keystonejs/keystone-5/commit/42c3fbc9): Adding isIndexed field config and support for in most field types
-- [42c3fbc9](https://github.com/keystonejs/keystone-5/commit/42c3fbc9): Switching lists to use standard field types for primary keys (instead of weird pseudo-field)
+- [42c3fbc9](https://github.com/keystonejs/keystone/commit/42c3fbc9): Adding isIndexed field config and support for in most field types
+- [42c3fbc9](https://github.com/keystonejs/keystone/commit/42c3fbc9): Switching lists to use standard field types for primary keys (instead of weird pseudo-field)
 
 ### Patch Changes
 
-- [42c3fbc9](https://github.com/keystonejs/keystone-5/commit/42c3fbc9): Upgrade knex to 0.19.0
-- [42c3fbc9](https://github.com/keystonejs/keystone-5/commit/42c3fbc9): Fixing application of some field config on knex
-- [42c3fbc9](https://github.com/keystonejs/keystone-5/commit/42c3fbc9): Adding `AutoIncrement` field type
-- [42c3fbc9](https://github.com/keystonejs/keystone-5/commit/42c3fbc9): Reload all columns after insert (knex); fixes #1399
+- [42c3fbc9](https://github.com/keystonejs/keystone/commit/42c3fbc9): Upgrade knex to 0.19.0
+- [42c3fbc9](https://github.com/keystonejs/keystone/commit/42c3fbc9): Fixing application of some field config on knex
+- [42c3fbc9](https://github.com/keystonejs/keystone/commit/42c3fbc9): Adding `AutoIncrement` field type
+- [42c3fbc9](https://github.com/keystonejs/keystone/commit/42c3fbc9): Reload all columns after insert (knex); fixes #1399
 
 ## 2.1.0
 
 ### Minor Changes
 
-- [18064167](https://github.com/keystonejs/keystone-5/commit/18064167):
+- [18064167](https://github.com/keystonejs/keystone/commit/18064167):
 
   Adding `knexOptions` to the KnexFieldAdapter to support DB-level config for nullability (`isNotNullable`) and defaults (`defaultTo`)
 
-* Updated dependencies [4007f5dd](https://github.com/keystonejs/keystone-5/commit/4007f5dd):
+* Updated dependencies [4007f5dd](https://github.com/keystonejs/keystone/commit/4007f5dd):
   - @keystone-alpha/keystone@8.0.0
 
 ## 2.0.0
 
 ### Major Changes
 
-- [2b094b7f](https://github.com/keystonejs/keystone-5/commit/2b094b7f):
+- [2b094b7f](https://github.com/keystonejs/keystone/commit/2b094b7f):
 
   Refactoring the knex adapter (and field adapters) to give the field type more control of the table schema (add 0 or multiple columns, etc)
 
@@ -337,98 +564,98 @@
 
 ### Minor Changes
 
-- [91fffa1e](https://github.com/keystonejs/keystone-5/commit/91fffa1e):
+- [91fffa1e](https://github.com/keystonejs/keystone/commit/91fffa1e):
 
   Move Knex Database Dropping from _always_ to _with config `dropDatabase: true`_.
 
-* Updated dependencies [91fffa1e](https://github.com/keystonejs/keystone-5/commit/91fffa1e):
+* Updated dependencies [91fffa1e](https://github.com/keystonejs/keystone/commit/91fffa1e):
   - @keystone-alpha/keystone@7.0.0
 
 ## 1.0.9
 
 ### Patch Changes
 
-- [19fe6c1b](https://github.com/keystonejs/keystone-5/commit/19fe6c1b):
+- [19fe6c1b](https://github.com/keystonejs/keystone/commit/19fe6c1b):
 
   Move frontmatter in docs into comments
 
-* Updated dependencies [1b4cf4e0](https://github.com/keystonejs/keystone-5/commit/1b4cf4e0):
+* Updated dependencies [1b4cf4e0](https://github.com/keystonejs/keystone/commit/1b4cf4e0):
   - @keystone-alpha/keystone@6.0.0
 
 ## 1.0.8
 
-- Updated dependencies [dfcabe6a](https://github.com/keystonejs/keystone-5/commit/dfcabe6a):
+- Updated dependencies [dfcabe6a](https://github.com/keystonejs/keystone/commit/dfcabe6a):
   - @keystone-alpha/keystone@5.0.0
 
 ## 1.0.7
 
 ### Patch Changes
 
-- [bd0ea21f](https://github.com/keystonejs/keystone-5/commit/bd0ea21f):
+- [bd0ea21f](https://github.com/keystonejs/keystone/commit/bd0ea21f):
 
   - Add .isRequired and .isUnique properties to field adapters
 
-- [81dc0be5](https://github.com/keystonejs/keystone-5/commit/81dc0be5):
+- [81dc0be5](https://github.com/keystonejs/keystone/commit/81dc0be5):
 
   - Update dependencies
 
-* Updated dependencies [24cd26ee](https://github.com/keystonejs/keystone-5/commit/24cd26ee):
-* Updated dependencies [2ef2658f](https://github.com/keystonejs/keystone-5/commit/2ef2658f):
-* Updated dependencies [ae5cf6cc](https://github.com/keystonejs/keystone-5/commit/ae5cf6cc):
-* Updated dependencies [b22d6c16](https://github.com/keystonejs/keystone-5/commit/b22d6c16):
-* Updated dependencies [b7a2ea9c](https://github.com/keystonejs/keystone-5/commit/b7a2ea9c):
+* Updated dependencies [24cd26ee](https://github.com/keystonejs/keystone/commit/24cd26ee):
+* Updated dependencies [2ef2658f](https://github.com/keystonejs/keystone/commit/2ef2658f):
+* Updated dependencies [ae5cf6cc](https://github.com/keystonejs/keystone/commit/ae5cf6cc):
+* Updated dependencies [b22d6c16](https://github.com/keystonejs/keystone/commit/b22d6c16):
+* Updated dependencies [b7a2ea9c](https://github.com/keystonejs/keystone/commit/b7a2ea9c):
   - @keystone-alpha/keystone@4.0.0
   - @keystone-alpha/utils@3.0.0
 
 ## 1.0.6
 
-- [patch][4eb2dcd0](https://github.com/keystonejs/keystone-5/commit/4eb2dcd0):
+- [patch][4eb2dcd0](https://github.com/keystonejs/keystone/commit/4eb2dcd0):
 
   - Fix bug in \_some, \_none, \_every queries
 
 ## 1.0.5
 
-- [patch][b4dcf44b](https://github.com/keystonejs/keystone-5/commit/b4dcf44b):
+- [patch][b4dcf44b](https://github.com/keystonejs/keystone/commit/b4dcf44b):
 
   - Use named exports from @keystone-alpha/keystone package.
 
-- [patch][3e3738dd](https://github.com/keystonejs/keystone-5/commit/3e3738dd):
+- [patch][3e3738dd](https://github.com/keystonejs/keystone/commit/3e3738dd):
 
   - Restructure internal code
 
-- Updated dependencies [656e90c2](https://github.com/keystonejs/keystone-5/commit/656e90c2):
-- Updated dependencies [b4dcf44b](https://github.com/keystonejs/keystone-5/commit/b4dcf44b):
+- Updated dependencies [656e90c2](https://github.com/keystonejs/keystone/commit/656e90c2):
+- Updated dependencies [b4dcf44b](https://github.com/keystonejs/keystone/commit/b4dcf44b):
   - @keystone-alpha/keystone@3.0.0
 
 ## 1.0.4
 
-- Updated dependencies [8d385ede](https://github.com/keystonejs/keystone-5/commit/8d385ede):
-- Updated dependencies [52f1c47b](https://github.com/keystonejs/keystone-5/commit/52f1c47b):
+- Updated dependencies [8d385ede](https://github.com/keystonejs/keystone/commit/8d385ede):
+- Updated dependencies [52f1c47b](https://github.com/keystonejs/keystone/commit/52f1c47b):
   - @keystone-alpha/keystone@2.0.0
 
 ## 1.0.3
 
-- Updated dependencies [98c02a46](https://github.com/keystonejs/keystone-5/commit/98c02a46):
+- Updated dependencies [98c02a46](https://github.com/keystonejs/keystone/commit/98c02a46):
   - @keystone-alpha/keystone@1.0.4
   - @keystone-alpha/utils@2.0.0
 
 ## 1.0.2
 
-- [patch][3a775092](https://github.com/keystonejs/keystone-5/commit/3a775092):
+- [patch][3a775092](https://github.com/keystonejs/keystone/commit/3a775092):
 
   - Update dependencies
 
-- [patch][7417ea3a](https://github.com/keystonejs/keystone-5/commit/7417ea3a):
+- [patch][7417ea3a](https://github.com/keystonejs/keystone/commit/7417ea3a):
 
   - Update patch-level dependencies
 
 ## 1.0.1
 
-- [patch][1f0bc236](https://github.com/keystonejs/keystone-5/commit/1f0bc236):
+- [patch][1f0bc236](https://github.com/keystonejs/keystone/commit/1f0bc236):
 
   - Update the package.json author field to "The Keystone Development Team"
 
-- [patch][9534f98f](https://github.com/keystonejs/keystone-5/commit/9534f98f):
+- [patch][9534f98f](https://github.com/keystonejs/keystone/commit/9534f98f):
 
   - Add README.md to package
 

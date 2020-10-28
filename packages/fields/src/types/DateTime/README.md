@@ -6,6 +6,8 @@ title: DateTime
 
 # DateTime
 
+Stores a point in time and a time zone offset.
+
 ## Usage
 
 ```js
@@ -15,7 +17,7 @@ keystone.createList('User', {
   fields: {
     lastOnline: {
       type: DateTime,
-      format: 'MM/DD/YYYY h:mm A',
+      format: 'dd/MM/yyyy HH:mm O',
       yearRangeFrom: 1901,
       yearRangeTo: 2018,
       yearPickerType: 'auto',
@@ -37,7 +39,9 @@ keystone.createList('User', {
 
 #### `format`
 
-Defines the format of the string that the component generates. For example, `MM/DD/YYYY h:mm A`.
+Defines the format of the string using unicode tokens. For example, `dd/MM/yyyy HH:mm O`.
+
+[Documentation of all the available tokens on Unicode website](https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table)
 
 #### `yearRangeFrom`
 
@@ -69,7 +73,7 @@ The `DateTime` field type adds a custom scalar `DateTime` and uses it for input 
 
 ## Storage
 
-### Mongoose Adaptor
+### Mongoose adapter
 
 On the Mongoose adapter the `DateTime` value is stored across three fields:
 
@@ -81,7 +85,7 @@ On the Mongoose adapter the `DateTime` value is stored across three fields:
 
 The `isRequired` config option is enforces by KeystoneJS only.
 
-### Knex Adaptor
+### Knex adapter
 
 On the Knex adapter the `DateTime` value is stored across two fields:
 

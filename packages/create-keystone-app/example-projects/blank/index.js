@@ -4,6 +4,7 @@ const { AdminUIApp } = require('@keystonejs/app-admin-ui');
 /* keystone-cli: generated-code */
 const { MongooseAdapter: Adapter } = require('@keystonejs/adapter-mongoose');
 const PROJECT_NAME = 'My KeystoneJS Project';
+const adapterConfig = {};
 /* /keystone-cli: generated-code */
 
 /**
@@ -13,11 +14,10 @@ const PROJECT_NAME = 'My KeystoneJS Project';
  */
 
 const keystone = new Keystone({
-  name: PROJECT_NAME,
-  adapter: new Adapter(),
+  adapter: new Adapter(adapterConfig),
 });
 
 module.exports = {
   keystone,
-  apps: [new GraphQLApp(), new AdminUIApp({ enableDefaultRoute: true })],
+  apps: [new GraphQLApp(), new AdminUIApp({ name: PROJECT_NAME, enableDefaultRoute: true })],
 };
