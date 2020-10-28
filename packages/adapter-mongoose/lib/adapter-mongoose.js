@@ -13,7 +13,7 @@ const {
 } = require('@keystonejs/utils');
 
 const { BaseKeystoneAdapter, BaseListAdapter, BaseFieldAdapter } = require('@keystonejs/keystone');
-const { queryParser, pipelineBuilder } = require('@keystonejs/mongo-join-builder');
+const { queryParser, pipelineBuilder } = require('@keystonejs/mono-repo/packages/mongo-join-builder');
 const logger = require('@keystonejs/logger').logger('mongoose');
 
 const slugify = require('@sindresorhus/slugify');
