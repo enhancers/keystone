@@ -47,20 +47,22 @@ function queryParser({ listAdapter, getUID }, query, pathSoFar = [], include) {
 
       // Extremely improve mongodb query, using indexes
       if(Object.keys(value).length == 1 && (value.id || value.id_not || value.id_in || value.id_not_in)) {
-        const filterType = key.replace(relationshipInfo.field, '');
+        //const fieldParser = key.split(/\_(?=[^\_]+$)/);
+        const fieldParser = key.split(/(\_some|\_every|\_none)+$/gm);
+        const filterType = fieldParser.length > 1 ? fieldParser[1] : '_only';
         let queryCondition = {};
         if(value.id) {
-          if(filterType === '' || filterType === '_some' || filterType === '_every' ) {
-            queryCondition[relationshipInfo.field] = {$eq: listAdapter.mongoose.Types.ObjectId(value.id)};
+          if(filterType === '_only' || filterType === '_some' || filterType === '_every' ) {
+            queryCondition[fieldParser[0]] = {$eq: listAdapter.mongoose.Types.ObjectId(value.id)};
           } else if(filterType === '_none') {
-            queryCondition[relationshipInfo.field] = {$ne: listAdapter.mongoose.Types.ObjectId(value.id)};
+            queryCondition[fieldParser[0]] = {$ne: listAdapter.mongoose.Types.ObjectId(value.id)};
           }
-        } else if(value.id_not && (filterType === '' || filterType === 'some' || filterType === '_every' || filterType === '_none')) {
-          queryCondition[relationshipInfo.field] = {$ne: listAdapter.mongoose.Types.ObjectId(value.id_not)};
-        } else if(value.id_in && (filterType === '' || filterType === '_some')) {
-          queryCondition[relationshipInfo.field] = {$in: value.id_in.map(el => listAdapter.mongoose.Types.ObjectId(el)) };
-        } else if(value.id_not_in && (filterType === '' || filterType === '_every')) {
-          queryCondition[relationshipInfo.field] = {$not: {$in: value.id_not_in.map(el => listAdapter.mongoose.Types.ObjectId(el)) }};
+        } else if(value.id_not && (filterType === '_only' || filterType === '_some' || filterType === '_every' || filterType === '_none')) {
+          queryCondition[fieldParser[0]] = {$ne: listAdapter.mongoose.Types.ObjectId(value.id_not)};
+        } else if(value.id_in && (filterType === '_only' || filterType === '_some')) {
+          queryCondition[fieldParser[0]] = {$in: value.id_in.map(el => listAdapter.mongoose.Types.ObjectId(el)) };
+        } else if(value.id_not_in && (filterType === '_only' || filterType === '_every')) {
+          queryCondition[fieldParser[0]] = {$not: {$in: value.id_not_in.map(el => listAdapter.mongoose.Types.ObjectId(el)) }};
         }
         if(Object.keys(queryCondition).length > 0) {
           return {matchTerm: queryCondition};
