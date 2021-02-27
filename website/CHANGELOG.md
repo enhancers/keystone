@@ -1,5 +1,23 @@
 # @keystonejs/website
 
+## 6.0.0
+
+### Major Changes
+
+- [`b97216a65`](https://github.com/keystonejs/keystone/commit/b97216a6526fffcca8232d86b115c28cb19587bf) [#4622](https://github.com/keystonejs/keystone/pull/4622) Thanks [@renovate](https://github.com/apps/renovate)! - Updated react and react-dom to v17
+
+## 5.3.14
+
+### Patch Changes
+
+- [`7afde2fb5`](https://github.com/keystonejs/keystone/commit/7afde2fb516e1d3824d73a96308abb4a6b022400) [#4253](https://github.com/keystonejs/keystone/pull/4253) Thanks [@jossmac](https://github.com/jossmac)! - Admin UI layout experiments and general tidy, esp. fields
+
+## 5.3.13
+
+### Patch Changes
+
+- [`a5e40e6c4`](https://github.com/keystonejs/keystone/commit/a5e40e6c4af1ab38cc2079a0f6e27d39d6b7d546) [#3549](https://github.com/keystonejs/keystone/pull/3549) Thanks [@renovate](https://github.com/apps/renovate)! - Updated dependency `@sindresorhus/slugify` to `^1.1.0`. Includes a slight breaking change in how some slugs are computed in the `Slug` field type. See https://github.com/sindresorhus/slugify/releases/tag/v1.0.0.
+
 ## 5.3.12
 
 ### Patch Changes

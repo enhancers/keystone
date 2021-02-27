@@ -143,7 +143,7 @@ type RootProps = {
 } & HTMLAttributes<HTMLDivElement>;
 
 const Root = forwardRef<HTMLDivElement, RootProps>(({ fill, size, width, ...props }, ref) => {
-  const { fields } = useTheme();
+  const { colors } = useTheme();
   const tokens = useControlTokens({ size, width });
 
   return (
@@ -157,7 +157,7 @@ const Root = forwardRef<HTMLDivElement, RootProps>(({ fill, size, width, ...prop
         paddingBottom: tokens.paddingY,
         userSelect: 'none',
         // -- TODO
-        background: fields.inputBackground,
+        background: colors.backgroundDim,
         display: fill ? 'flex' : 'inline-flex',
         flexWrap: 'wrap',
         maxWidth: tokens.width,
@@ -258,8 +258,8 @@ const useItemSize = () => {
       paddingTop: spacing.small,
     },
     medium: {
-      borderRadius: radii.small,
-      fontSize: typography.fontSize.medium,
+      borderRadius: radii.xsmall,
+      fontSize: typography.fontSize.small,
       paddingLeft: spacing.medium,
       paddingRight: spacing.medium,
       paddingBottom: spacing.small,
@@ -267,7 +267,7 @@ const useItemSize = () => {
     },
     large: {
       borderRadius: radii.small,
-      fontSize: typography.fontSize.large,
+      fontSize: typography.fontSize.medium,
       paddingLeft: spacing.large,
       paddingRight: spacing.large,
       paddingBottom: spacing.medium,

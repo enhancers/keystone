@@ -1,26 +1,19 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import * as cookie from 'cookie';
 import Iron from '@hapi/iron';
-import { execute, parse } from 'graphql';
 import {
   SessionStrategy,
   JSONValue,
   SessionStoreFunction,
   SessionContext,
-  Keystone,
-} from '@keystone-spike/types';
+  CreateContext,
+} from '@keystone-next/types';
 
 // uid-safe is what express-session uses so let's just use it
 import { sync as uid } from 'uid-safe';
 
 function generateSessionId() {
   return uid(24);
-}
-
-function sessionStrategy<TSessionStrategy extends SessionStrategy<any>>(
-  sessionStrategy: TSessionStrategy
-): TSessionStrategy {
-  return sessionStrategy;
 }
 
 const TOKEN_NAME = 'keystonejs-session';
@@ -34,6 +27,7 @@ type StatelessSessionsOptions = {
   secret: string;
   /**
    * Iron seal options for customizing the key derivation algorithm used to generate encryption and integrity verification keys as well as the algorithms and salt sizes used.
+   * See {@link https://hapi.dev/module/iron/api/?v=6.0.0#options} for available options.
    *
    * @default Iron.defaults
    */
@@ -67,53 +61,62 @@ type FieldSelections = {
   [listKey: string]: string;
 };
 
-type CreateSession = ReturnType<typeof statelessSessions>;
-
 /* TODO:
   - [ ] We could support additional where input to validate item sessions (e.g an isEnabled boolean)
 */
 
-export function withItemData(createSession: CreateSession, fieldSelections: FieldSelections) {
+export function withItemData<T extends { listKey: string; itemId: string }>(
+  createSession: () => SessionStrategy<T>,
+  fieldSelections: FieldSelections = {}
+): () => SessionStrategy<T & { data: any }> {
   return (): SessionStrategy<any> => {
-    const { get, ...sessionThing } = createSession();
+    const { get, ...sessionStrategy } = createSession();
     return {
-      ...sessionThing,
-      get: async ({ req, keystone }) => {
-        const session = await get({ req, keystone });
-        if (!session) return;
-        // Only load data for lists specified in fieldSelections
-        if (!fieldSelections[session.listKey]) return session;
-        const context = keystone.createContext({ skipAccessControl: true });
-        const { gqlNames } = keystone.adminMeta.lists[session.listKey];
-        const query = parse(`query($id: ID!) {
-          item: ${gqlNames.itemQueryName}(where: { id: $id }) {
-            ${fieldSelections[session.listKey]}
-          }
-        }`);
-        const args = { id: session.itemId };
-        const result = await execute(keystone.graphQLSchema, query, null, context, args);
-        // TODO: This causes "not found" errors to throw, which is not what we want
-        // TOOD: Also, why is this coming back as an access denied error instead of "not found" with an invalid session?
-        // if (result.errors?.length) {
-        //   throw result.errors[0];
-        // }
-        // If there is no matching item found, return no session
-        if (!result?.data?.item) {
-          return;
+      ...sessionStrategy,
+      get: async ({ req, createContext }) => {
+        const session = await get({ req, createContext });
+        const sudoContext = createContext({}).sudo();
+        if (
+          !session ||
+          !session.listKey ||
+          !session.itemId ||
+          !sudoContext.lists[session.listKey]
+        ) {
+          return session;
         }
-        return { ...session, item: result.data.item };
+
+        // NOTE: This is wrapped in a try-catch block because a "not found" result will currently
+        // throw; I think this needs to be reviewed, but for now this prevents a system crash when
+        // the session item is invalid
+        try {
+          // If no field selection is specified, just load the id. We still load the item,
+          // because doing so validates that it exists in the database
+          const item = await sudoContext.lists[session.listKey].findOne({
+            where: { id: session.itemId },
+            resolveFields: fieldSelections[session.listKey] || 'id',
+          });
+          // If there is no matching item found, return the session without a `data value
+          if (!item) {
+            return session;
+          }
+          return { ...session, data: item };
+        } catch (e) {
+          // TODO: This swallows all errors, we need a way to differentiate between "not found" and
+          // actual exceptions that should be thrown
+          return session;
+        }
       },
     };
   };
 }
 
-export function statelessSessions({
+export function statelessSessions<T>({
   secret,
   maxAge = MAX_AGE,
   path = '/',
   secure = process.env.NODE_ENV === 'production',
   ironOptions = Iron.defaults,
-}: StatelessSessionsOptions) {
+}: StatelessSessionsOptions): () => SessionStrategy<T> {
   return () => {
     if (!secret) {
       throw new Error('You must specify a session secret to use sessions');
@@ -121,9 +124,8 @@ export function statelessSessions({
     if (secret.length < 32) {
       throw new Error('The session secret must be at least 32 characters long');
     }
-    return sessionStrategy({
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      async get({ req, keystone }) {
+    return {
+      async get({ req }) {
         if (!req.headers.cookie) return;
         let cookies = cookie.parse(req.headers.cookie);
         if (!cookies[TOKEN_NAME]) return;
@@ -161,7 +163,7 @@ export function statelessSessions({
 
         return sealedData;
       },
-    });
+    };
   };
 }
 
@@ -175,69 +177,54 @@ export function storedSessions({
   return () => {
     let { get, start, end } = statelessSessions({ ...statelessSessionsOptions, maxAge })();
     let store = typeof storeOption === 'function' ? storeOption({ maxAge }) : storeOption;
+    let isConnected = false;
     return {
-      connect: store.connect,
-      disconnect: store.disconnect,
-      async get({ req, keystone }) {
-        let sessionId = await get({ req, keystone });
+      async get({ req, createContext }) {
+        let sessionId = await get({ req, createContext });
         if (typeof sessionId === 'string') {
+          if (!isConnected) {
+            await store.connect?.();
+            isConnected = true;
+          }
           return store.get(sessionId);
         }
       },
-      async start({ res, data, keystone }) {
+      async start({ res, data, createContext }) {
         let sessionId = generateSessionId();
+        if (!isConnected) {
+          await store.connect?.();
+          isConnected = true;
+        }
         await store.set(sessionId, data);
-        return start({ res, data: { sessionId }, keystone });
+        return start?.({ res, data: { sessionId }, createContext }) || '';
       },
-      async end({ req, res, keystone }) {
-        let sessionId = await get({ req, keystone });
+      async end({ req, res, createContext }) {
+        let sessionId = await get({ req, createContext });
         if (typeof sessionId === 'string') {
+          if (!isConnected) {
+            await store.connect?.();
+            isConnected = true;
+          }
           await store.delete(sessionId);
         }
-        await end({ req, res, keystone });
+        await end?.({ req, res, createContext });
       },
     };
   };
 }
 
-// TODO: We gotta find a better name for this...
-export function sessionStuff(sessionStrategy: SessionStrategy<unknown>) {
-  let isConnected = false;
-  let connect = async () => {
-    await sessionStrategy.connect?.();
-    isConnected = true;
-  };
-  let disconnect = async () => {
-    await sessionStrategy.disconnect?.();
-    isConnected = false;
-  };
+/**
+ * This is the function createSystem uses to implement the session strategy provided
+ */
+export async function createSessionContext<T>(
+  sessionStrategy: SessionStrategy<T>,
+  req: IncomingMessage,
+  res: ServerResponse,
+  createContext: CreateContext
+): Promise<SessionContext<T>> {
   return {
-    connect,
-    disconnect,
-    async createContext(
-      req: IncomingMessage,
-      res: ServerResponse,
-      keystone: Keystone
-    ): Promise<SessionContext> {
-      if (!isConnected) {
-        await connect();
-      }
-      const session = await sessionStrategy.get({ req, keystone });
-      const startSession = sessionStrategy.start;
-      const endSession = sessionStrategy.end;
-      return {
-        session,
-        startSession: startSession
-          ? (data: unknown) => {
-              return startSession({ res, data, keystone });
-            }
-          : undefined,
-        endSession: endSession
-          ? () => {
-              return endSession({ req, res, keystone });
-            }
-          : undefined,
-      };
-    },
+    session: await sessionStrategy.get({ req, createContext }),
+    startSession: (data: T) => sessionStrategy.start({ res, data, createContext }),
+    endSession: () => sessionStrategy.end({ req, res, createContext }),
   };
 }

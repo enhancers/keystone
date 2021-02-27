@@ -1,17 +1,18 @@
 import React, { ReactNode, createContext, useContext, useMemo } from 'react';
 import { ApolloProvider, ApolloClient, InMemoryCache, ApolloError, DocumentNode } from './apollo';
-import type { AdminConfig, AdminMeta, FieldViews } from '@keystone-spike/types';
+import type { AdminConfig, AdminMeta, FieldViews } from '@keystone-next/types';
 import { Center } from '@keystone-ui/core';
 import { ToastProvider } from '@keystone-ui/toast';
 import { LoadingDots } from '@keystone-ui/loading';
 import { DrawerProvider } from '@keystone-ui/modals';
 import { useAdminMeta } from './utils/useAdminMeta';
+import { createUploadLink } from 'apollo-upload-client';
 import {
   AuthenticatedItem,
   VisibleLists,
   useLazyMetadata,
   CreateViewFieldModes,
-} from './utils/useAuthenticatedItem';
+} from './utils/useLazyMetadata';
 
 type KeystoneContextType = {
   adminConfig: AdminConfig;
@@ -84,14 +85,14 @@ export const KeystoneProvider = (props: KeystoneProviderProps) => {
     () =>
       new ApolloClient({
         cache: new InMemoryCache(),
-        uri: '/api/graphql',
+        // FIXME: Use config.graphql.path
+        link: createUploadLink({ uri: '/api/graphql' }),
       }),
     []
   );
 
   return (
     <ApolloProvider client={apolloClient}>
-      <script src="http://localhost:8097" />
       <InternalKeystoneProvider {...props} />
     </ApolloProvider>
   );

@@ -1,20 +1,22 @@
 /* @jsx jsx */
 
-import { jsx, useTheme } from '@keystone-ui/core';
-import { FieldContainer, Checkbox } from '@keystone-ui/fields';
+import { CellContainer } from '@keystone-next/admin-ui/components';
 import {
+  CardValueComponent,
   CellComponent,
   FieldController,
   FieldControllerConfig,
   FieldProps,
-} from '@keystone-spike/types';
-import { Fragment } from 'react';
+} from '@keystone-next/types';
+import { jsx, useTheme } from '@keystone-ui/core';
+import { Checkbox, FieldContainer, FieldLabel } from '@keystone-ui/fields';
 
-export const Field = ({ field, value, onChange }: FieldProps<typeof controller>) => {
-  const { fields, typography, spacing } = useTheme();
+export const Field = ({ field, value, onChange, autoFocus }: FieldProps<typeof controller>) => {
+  const { fields, typography } = useTheme();
   return (
-    <FieldContainer css={{ marginTop: spacing.large, marginBottom: spacing.large }}>
+    <FieldContainer>
       <Checkbox
+        autoFocus={autoFocus}
         disabled={onChange === undefined}
         onChange={event => {
           onChange?.(event.target.checked);
@@ -30,7 +32,23 @@ export const Field = ({ field, value, onChange }: FieldProps<typeof controller>)
 };
 
 export const Cell: CellComponent = ({ item, field }) => {
-  return <Fragment>{item[field.path] + ''}</Fragment>;
+  const value = !!item[field.path];
+  return (
+    <CellContainer>
+      <Checkbox disabled checked={value} size="small">
+        <span css={{}}>{value ? 'True' : 'False'}</span>
+      </Checkbox>
+    </CellContainer>
+  );
+};
+
+export const CardValue: CardValueComponent = ({ item, field }) => {
+  return (
+    <FieldContainer>
+      <FieldLabel>{field.label}</FieldLabel>
+      {item[field.path] + ''}
+    </FieldContainer>
+  );
 };
 
 type CheckboxController = FieldController<boolean, boolean>;

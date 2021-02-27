@@ -1,38 +1,25 @@
 import { Text } from '@keystonejs/fields';
-
-import type { FieldConfig } from '../../interfaces';
-import type { FieldType } from '@keystone-spike/types';
-import type { BaseGeneratedListTypes } from '@keystone-spike/types';
+import type { FieldType, BaseGeneratedListTypes, FieldDefaultValue } from '@keystone-next/types';
 import { resolveView } from '../../resolve-view';
+import type { FieldConfig } from '../../interfaces';
 
-export type TextFieldConfig<TGeneratedListTypes extends BaseGeneratedListTypes> = FieldConfig<
-  TGeneratedListTypes
-> & {
-  defaultValue?: string;
+export type TextFieldConfig<
+  TGeneratedListTypes extends BaseGeneratedListTypes
+> = FieldConfig<TGeneratedListTypes> & {
+  defaultValue?: FieldDefaultValue<string>;
   isRequired?: boolean;
   isUnique?: boolean;
-  admin?: {
+  isIndexed?: boolean;
+  ui?: {
     displayMode?: 'input' | 'textarea';
   };
 };
 
-const views = resolveView('text/views');
-
 export const text = <TGeneratedListTypes extends BaseGeneratedListTypes>(
-  config: TextFieldConfig<TGeneratedListTypes>
+  config: TextFieldConfig<TGeneratedListTypes> = {}
 ): FieldType<TGeneratedListTypes> => ({
   type: Text,
   config,
-  getAdminMeta: () => ({
-    displayMode: config.admin?.displayMode ?? 'input',
-  }),
-  views,
-  getBackingType(path: string) {
-    return {
-      [path]: {
-        optional: true,
-        type: 'string | null',
-      },
-    };
-  },
+  views: resolveView('text/views'),
+  getAdminMeta: () => ({ displayMode: config.ui?.displayMode ?? 'input' }),
 });

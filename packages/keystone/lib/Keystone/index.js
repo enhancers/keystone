@@ -4,15 +4,8 @@ const memoize = require('micro-memoize');
 const falsey = require('falsey');
 const createCorsMiddleware = require('cors');
 const { execute, print } = require('graphql');
-const {
-  resolveAllKeys,
-  arrayToObject,
-  mapKeys,
-  objMerge,
-  flatten,
-  unique,
-  filterValues,
-} = require('@keystonejs/utils');
+const { GraphQLUpload } = require('graphql-upload');
+const { arrayToObject, objMerge, flatten, unique, filterValues } = require('@keystonejs/utils');
 const {
   validateFieldAccessControl,
   validateListAccessControl,
@@ -33,9 +26,7 @@ const composePlugins = fns => (o, e) => fns.reduce((acc, fn) => fn(acc, e), o);
 module.exports = class Keystone {
   constructor({
     defaultAccess,
-    adapters,
     adapter,
-    defaultAdapter,
     onConnect,
     cookieSecret,
     sessionStore,
@@ -80,12 +71,8 @@ module.exports = class Keystone {
       }),
     ];
 
-    if (adapters) {
-      this.adapters = adapters;
-      this.defaultAdapter = defaultAdapter;
-    } else if (adapter) {
-      this.adapters = { [adapter.constructor.name]: adapter };
-      this.defaultAdapter = adapter.constructor.name;
+    if (adapter) {
+      this.adapter = adapter;
     } else {
       throw new Error('No database adapter provided');
     }
@@ -114,13 +101,15 @@ module.exports = class Keystone {
     const getCustomAccessControlForUser = memoize(
       async (item, args, context, info, access, gqlName) => {
         return validateCustomAccessControl({
-          item,
-          args,
-          context,
-          info,
           access: access[schemaName],
-          authentication,
-          gqlName,
+          args: {
+            item,
+            args,
+            context,
+            info,
+            authentication: authentication && authentication.item ? authentication : {},
+            gqlName,
+          },
         });
       },
       { isPromise: true }
@@ -136,14 +125,16 @@ module.exports = class Keystone {
       ) => {
         return validateListAccessControl({
           access: access[schemaName],
-          originalInput,
-          operation,
-          authentication,
-          listKey,
-          gqlName,
-          itemId,
-          itemIds,
-          context,
+          args: {
+            originalInput,
+            operation,
+            authentication: authentication && authentication.item ? authentication : {},
+            listKey,
+            gqlName,
+            itemId,
+            itemIds,
+            context,
+          },
         });
       },
       { isPromise: true }
@@ -161,16 +152,18 @@ module.exports = class Keystone {
       ) => {
         return validateFieldAccessControl({
           access: access[schemaName],
-          originalInput,
-          existingItem,
-          operation,
-          authentication,
-          fieldKey,
-          listKey,
-          gqlName,
-          itemId,
-          itemIds,
-          context,
+          args: {
+            originalInput,
+            existingItem,
+            operation,
+            authentication: authentication && authentication.item ? authentication : {},
+            fieldKey,
+            listKey,
+            gqlName,
+            itemId,
+            itemIds,
+            context,
+          },
         });
       },
       { isPromise: true }
@@ -180,10 +173,13 @@ module.exports = class Keystone {
       async (access, listKey, { gqlName, context } = {}) => {
         return validateAuthAccessControl({
           access: access[schemaName],
-          authentication,
-          listKey,
-          gqlName,
-          context,
+          args: {
+            authentication: authentication && authentication.item ? authentication : {},
+            listKey,
+            gqlName,
+            context,
+            operation: 'auth',
+          },
         });
       },
       { isPromise: true }
@@ -214,6 +210,8 @@ module.exports = class Keystone {
       authentication = defaults.authentication,
       skipAccessControl = defaults.skipAccessControl,
     } = {}) => this.createContext({ schemaName, authentication, skipAccessControl });
+    context.sudo = () =>
+      this.createContext({ schemaName, authentication, skipAccessControl: true });
     context.executeGraphQL = ({ context = defaults.context, query, variables }) =>
       this.executeGraphQL({ context, query, variables });
     context.gqlNames = listKey => this.lists[listKey].gqlNames;
@@ -260,15 +258,19 @@ module.exports = class Keystone {
   }
 
   createList(key, config, { isAuxList = false } = {}) {
-    const { getListByKey, adapters } = this;
-    const adapterName = config.adapterName || this.defaultAdapter;
+    const { getListByKey, adapter } = this;
     const isReservedName = !isAuxList && key[0] === '_';
 
     if (isReservedName) {
       throw new Error(`Invalid list name "${key}". List names cannot start with an underscore.`);
     }
+    if (['Query', 'Subscription', 'Mutation'].includes(key)) {
+      throw new Error(
+        `Invalid list name "${key}". List names cannot be reserved GraphQL keywords.`
+      );
+    }
 
-    // Apollo Server automatically adds an 'Upload' scalar type to the GQL schema. Since list output
+    // Keystone automatically adds an 'Upload' scalar type to the GQL schema. Since list output
     // types are named after their keys, having a list name 'Upload' will clash and cause a confusing
     // error on start.
     if (key === 'Upload' || key === 'upload') {
@@ -282,7 +284,7 @@ module.exports = class Keystone {
       composePlugins(config.plugins || [])(config, { listKey: key, keystone: this }),
       {
         getListByKey,
-        adapter: adapters[adapterName],
+        adapter,
         defaultAccess: this.defaultAccess,
         registerType: type => this.registeredTypes.add(type),
         isAuxList,
@@ -438,21 +440,17 @@ module.exports = class Keystone {
    * @return Promise<any> the result of executing `onConnect` as passed to the
    * constructor, or `undefined` if no `onConnect` method specified.
    */
-  async connect() {
-    const { adapters } = this;
-    const rels = this._consolidateRelationships();
-    await resolveAllKeys(mapKeys(adapters, adapter => adapter.connect({ rels })));
+  async connect(args) {
+    await this.adapter.connect({ rels: this._consolidateRelationships() });
 
     if (this.eventHandlers.onConnect) {
-      return this.eventHandlers.onConnect(this);
+      return this.eventHandlers.onConnect(this, args);
     }
   }
 
   createApolloServer({ apolloConfig = {}, schemaName, dev }) {
     // add the Admin GraphQL API
     const server = new ApolloServer({
-      maxFileSize: 200 * 1024 * 1024,
-      maxFiles: 5,
       typeDefs: this.getTypeDefs({ schemaName }),
       resolvers: this.getResolvers({ schemaName }),
       context: ({ req }) => ({
@@ -477,6 +475,7 @@ module.exports = class Keystone {
           }),
       formatError,
       ...apolloConfig,
+      uploads: false, // User cannot override this as it would clash with the upload middleware
     });
     this._schemas[schemaName] = server.schema;
 
@@ -487,7 +486,7 @@ module.exports = class Keystone {
    * @return Promise<null>
    */
   async disconnect() {
-    await resolveAllKeys(mapKeys(this.adapters, adapter => adapter.disconnect()));
+    await this.adapter.disconnect();
   }
 
   getAdminMeta({ schemaName }) {
@@ -538,6 +537,7 @@ module.exports = class Keystone {
       queries.length > 0 && `type Query { ${queries.join('\n')} }`,
       mutations.length > 0 && `type Mutation { ${mutations.join('\n')} }`,
       subscriptions.length > 0 && `type Subscription { ${subscriptions.join('\n')} }`,
+      'scalar Upload',
     ]
       .filter(s => s)
       .map(s => gql(s));
@@ -560,16 +560,16 @@ module.exports = class Keystone {
         Subscription: objMerge(
           this._providers.map(p => p.getSubscriptionResolvers({ schemaName }))
         ),
+        Upload: GraphQLUpload,
       },
       o => Object.entries(o).length > 0
     );
   }
 
   dumpSchema(schemaName = 'public') {
-    // The 'Upload' scalar is normally automagically added by Apollo Server
-    // See: https://blog.apollographql.com/file-uploads-with-apollo-server-2-0-5db2f3f60675
-    // Since we don't execute apollo server over this schema, we have to reinsert it.
-    return ['scalar Upload', ...this.getTypeDefs({ schemaName }).map(t => print(t))].join('\n');
+    return this.getTypeDefs({ schemaName })
+      .map(t => print(t))
+      .join('\n');
   }
 
   async _prepareMiddlewares({ dev, apps, distDir, pinoOptions, cors }) {

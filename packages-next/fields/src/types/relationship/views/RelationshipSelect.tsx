@@ -1,10 +1,12 @@
 /** @jsx jsx */
-import { jsx } from '@keystone-ui/core';
-import { gql, TypedDocumentNode, useQuery } from '@keystone-spike/admin-ui/apollo';
-import { Select, selectComponents, MultiSelect } from '@keystone-ui/fields';
+
 import 'intersection-observer';
-import { useState, useMemo, useRef, useEffect, RefObject } from 'react';
-import { ListMeta } from '@keystone-spike/types';
+import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
+
+import { gql, TypedDocumentNode, useQuery } from '@keystone-next/admin-ui/apollo';
+import { ListMeta } from '@keystone-next/types';
+import { jsx } from '@keystone-ui/core';
+import { MultiSelect, Select, selectComponents } from '@keystone-ui/fields';
 
 function useIntersectionObserver(cb: IntersectionObserverCallback, ref: RefObject<any>) {
   useEffect(() => {
@@ -20,37 +22,50 @@ function useIntersectionObserver(cb: IntersectionObserverCallback, ref: RefObjec
 const initialItemsToLoad = 10;
 const subsequentItemsToLoad = 50;
 
+const idField = '____id____';
+
+const labelField = '____label____';
+
 export const RelationshipSelect = ({
   autoFocus,
-  list,
+  controlShouldRenderValue,
   isDisabled,
+  isLoading,
+  list,
+  placeholder,
   state,
+  extraSelection = '',
 }: {
-  list: ListMeta;
   autoFocus?: boolean;
+  controlShouldRenderValue: boolean;
   isDisabled: boolean;
+  isLoading?: boolean;
+  list: ListMeta;
+  placeholder?: string;
   state:
     | {
         kind: 'many';
-        value: { label: string; id: string }[];
-        onChange(value: { label: string; id: string }[]): void;
+        value: { label: string; id: string; data?: Record<string, any> }[];
+        onChange(value: { label: string; id: string; data: Record<string, any> }[]): void;
       }
     | {
         kind: 'one';
-        value: { label: string; id: string } | null;
-        onChange(value: { label: string; id: string } | null): void;
+        value: { label: string; id: string; data?: Record<string, any> } | null;
+        onChange(value: { label: string; id: string; data: Record<string, any> } | null): void;
       };
+  extraSelection?: string;
 }) => {
   const [search, setSearch] = useState('');
 
   const QUERY: TypedDocumentNode<
-    { items: { id: string; label: string | null }[]; meta: { count: number } },
+    { items: { [idField]: string; [labelField]: string | null }[]; meta: { count: number } },
     { search: string; first: number; skip: number }
   > = gql`
     query RelationshipSelect($search: String!, $first: Int!, $skip: Int!) {
       items: ${list.gqlNames.listQueryName}(search: $search, first: $first, skip: $skip) {
-        id
-        label: ${list.labelField}
+        ${idField}: id
+        ${labelField}: ${list.labelField}
+        ${extraSelection}
       }
 
       meta: ${list.gqlNames.listQueryMetaName}(search: $search) {
@@ -71,13 +86,14 @@ export const RelationshipSelect = ({
       MenuList: ({ children, ...props }) => {
         const loadingRef = useRef(null);
         const QUERY: TypedDocumentNode<
-          { items: { id: string; label: string | null }[] },
+          { items: { [idField]: string; [labelField]: string | null }[] },
           { search: string; first: number; skip: number }
         > = gql`
             query RelationshipSelectMore($search: String!, $first: Int!, $skip: Int!) {
               items: ${list.gqlNames.listQueryName}(search: $search, first: $first, skip: $skip) {
-                label: ${list.labelField}
-                id
+                ${labelField}: ${list.labelField}
+                ${idField}: id
+                ${extraSelection}
               }
             }
           `;
@@ -124,9 +140,10 @@ export const RelationshipSelect = ({
   }
 
   const options =
-    data?.items?.map((val: any) => ({
-      value: val.id,
-      label: val.label || val.id,
+    data?.items?.map(({ [idField]: value, [labelField]: label, ...data }) => ({
+      value,
+      label: label || value,
+      data,
     })) || [];
 
   if (state.kind === 'one') {
@@ -135,10 +152,20 @@ export const RelationshipSelect = ({
         // this is necessary because react-select passes a second argument to onInputChange
         // and useState setters log a warning if a second argument is passed
         onInputChange={val => setSearch(val)}
-        isLoading={loading}
+        isLoading={loading || isLoading}
         autoFocus={autoFocus}
         components={relationshipSelectComponents}
-        value={state.value ? { value: state.value.id, label: state.value.label } : null}
+        portalMenu
+        value={
+          state.value
+            ? {
+                value: state.value.id,
+                label: state.value.label,
+                // @ts-ignore
+                data: state.value.data,
+              }
+            : null
+        }
         options={options}
         onChange={value => {
           state.onChange(
@@ -146,11 +173,14 @@ export const RelationshipSelect = ({
               ? {
                   id: value.value,
                   label: value.label,
+                  data: (value as any).data,
                 }
               : null
           );
         }}
-        isClearable
+        placeholder={placeholder}
+        controlShouldRenderValue={controlShouldRenderValue}
+        isClearable={controlShouldRenderValue}
         isDisabled={isDisabled}
       />
     );
@@ -160,15 +190,18 @@ export const RelationshipSelect = ({
     <MultiSelect // this is necessary because react-select passes a second argument to onInputChange
       // and useState setters log a warning if a second argument is passed
       onInputChange={val => setSearch(val)}
-      isLoading={loading}
+      isLoading={loading || isLoading}
       autoFocus={autoFocus}
       components={relationshipSelectComponents}
-      value={state.value.map(value => ({ value: value.id, label: value.label })) || null}
+      portalMenu
+      value={state.value.map(value => ({ value: value.id, label: value.label, data: value.data }))}
       options={options}
       onChange={value => {
-        state.onChange(value.map(x => ({ id: x.value, label: x.label })));
+        state.onChange(value.map(x => ({ id: x.value, label: x.label, data: (x as any).data })));
       }}
-      isClearable
+      placeholder={placeholder}
+      controlShouldRenderValue={controlShouldRenderValue}
+      isClearable={controlShouldRenderValue}
       isDisabled={isDisabled}
     />
   );

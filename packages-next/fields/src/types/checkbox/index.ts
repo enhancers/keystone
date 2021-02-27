@@ -1,29 +1,19 @@
 import { Checkbox } from '@keystonejs/fields';
-import type { FieldConfig } from '../../interfaces';
-import type { FieldType } from '@keystone-spike/types';
-import type { BaseGeneratedListTypes } from '@keystone-spike/types';
+import type { FieldType, BaseGeneratedListTypes, FieldDefaultValue } from '@keystone-next/types';
 import { resolveView } from '../../resolve-view';
+import type { FieldConfig } from '../../interfaces';
 
-export type CheckboxFieldConfig<TGeneratedListTypes extends BaseGeneratedListTypes> = FieldConfig<
-  TGeneratedListTypes
-> & {
-  defaultValue?: boolean;
+export type CheckboxFieldConfig<
+  TGeneratedListTypes extends BaseGeneratedListTypes
+> = FieldConfig<TGeneratedListTypes> & {
+  defaultValue?: FieldDefaultValue<boolean>;
+  isRequired?: boolean;
 };
 
-const views = resolveView('checkbox/views');
-
 export const checkbox = <TGeneratedListTypes extends BaseGeneratedListTypes>(
-  config: CheckboxFieldConfig<TGeneratedListTypes>
+  config: CheckboxFieldConfig<TGeneratedListTypes> = {}
 ): FieldType<TGeneratedListTypes> => ({
   type: Checkbox,
-  config: config,
-  views,
-  getBackingType(path) {
-    return {
-      [path]: {
-        optional: true,
-        type: 'boolean | null',
-      },
-    };
-  },
+  config,
+  views: resolveView('checkbox/views'),
 });

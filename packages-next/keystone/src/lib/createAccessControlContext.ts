@@ -1,15 +1,6 @@
-async function validateListAccessControl({
-  access,
-  listKey,
-  operation,
-  session,
-  originalInput,
-  gqlName,
-  itemId,
-  itemIds,
-  context,
-}: {
-  access: any;
+import { KeystoneContext } from '@keystone-next/types';
+
+type ListAccessArgs = {
   listKey: string;
   operation: string;
   session: any;
@@ -17,23 +8,32 @@ async function validateListAccessControl({
   gqlName: string;
   itemId: any;
   itemIds: any;
-  context: any;
-}) {
+  context: KeystoneContext;
+};
+
+type FieldAccessArgs = {
+  listKey: string;
+  operation: string;
+  session: any;
+  originalInput: any;
+  gqlName: string;
+  context: KeystoneContext;
+  item: any;
+  fieldKey: string;
+};
+
+async function validateListAccessControl({
+  access,
+  operation,
+  listKey,
+  ...args
+}: { access: any } & ListAccessArgs) {
   // Either a boolean or an object describing a where clause
   let result;
   if (typeof access[operation] !== 'function') {
     result = access[operation];
   } else {
-    result = await access[operation]({
-      session,
-      listKey,
-      operation,
-      originalInput,
-      gqlName,
-      itemId,
-      itemIds,
-      context,
-    });
+    result = await access[operation]({ listKey, operation, ...args });
   }
 
   const type = typeof result;
@@ -56,45 +56,16 @@ async function validateListAccessControl({
 
 async function validateFieldAccessControl({
   access,
+  operation,
   listKey,
   fieldKey,
-  originalInput,
-  existingItem,
-  operation,
-  session,
-  gqlName,
-  itemId,
-  itemIds,
-  context,
-}: {
-  access: any;
-  listKey: string;
-  operation: string;
-  session: any;
-  originalInput: any;
-  gqlName: string;
-  itemId: any;
-  itemIds: any;
-  context: any;
-  existingItem: any;
-  fieldKey: any;
-}) {
+  ...args
+}: { access: any } & FieldAccessArgs) {
   let result;
   if (typeof access[operation] !== 'function') {
     result = access[operation];
   } else {
-    result = await access[operation]({
-      session,
-      listKey,
-      fieldKey,
-      originalInput,
-      existingItem,
-      operation,
-      gqlName,
-      itemId,
-      itemIds,
-      context,
-    });
+    result = await access[operation]({ listKey, fieldKey, operation, ...args });
   }
 
   if (typeof result !== 'boolean') {
@@ -122,10 +93,15 @@ export const skipAccessControlContext = {
 export const accessControlContext = {
   async getListAccessControlForUser(
     access: any,
-    listKey: any,
-    originalInput: any,
-    operation: any,
-    { gqlName, itemId, itemIds, context }: any = {}
+    listKey: ListAccessArgs['listKey'],
+    originalInput: ListAccessArgs['originalInput'],
+    operation: ListAccessArgs['operation'],
+    {
+      gqlName,
+      itemId,
+      itemIds,
+      context,
+    }: Pick<ListAccessArgs, 'gqlName' | 'itemId' | 'itemIds' | 'context'>
   ) {
     return validateListAccessControl({
       access: access[context.schemaName],
@@ -141,24 +117,22 @@ export const accessControlContext = {
   },
   async getFieldAccessControlForUser(
     access: any,
-    listKey: any,
-    fieldKey: any,
-    originalInput: any,
-    existingItem: any,
-    operation: any,
-    { gqlName, itemId, itemIds, context }: any = {}
+    listKey: FieldAccessArgs['listKey'],
+    fieldKey: FieldAccessArgs['fieldKey'],
+    originalInput: FieldAccessArgs['originalInput'],
+    item: FieldAccessArgs['item'],
+    operation: FieldAccessArgs['operation'],
+    { gqlName, context }: Pick<FieldAccessArgs, 'gqlName' | 'context'>
   ) {
     return validateFieldAccessControl({
       access: access[context.schemaName],
       originalInput,
-      existingItem,
+      item,
       operation,
       session: context.session,
       fieldKey,
       listKey,
       gqlName,
-      itemId,
-      itemIds,
       context,
     });
   },

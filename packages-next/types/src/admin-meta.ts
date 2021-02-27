@@ -1,9 +1,13 @@
-import type { ComponentType, ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { GqlNames, JSONValue } from './utils';
 
+export type AdminConfig = { components?: { Logo?: (props: {}) => ReactElement } };
+
 export type FieldControllerConfig<FieldMeta extends JSONValue | undefined = undefined> = {
+  listKey: string;
   path: string;
   label: string;
+  customViews: Record<string, any>;
   fieldMeta: FieldMeta;
 };
 
@@ -40,22 +44,18 @@ export type FieldController<FormState, FilterValue extends JSONValue = never> = 
   };
 };
 
-export type SerializedFieldMeta = {
-  label: string;
-  views: number;
-  isOrderable: boolean;
-  fieldMeta: JSONValue;
-};
-
 export type FieldMeta = {
+  path: string;
   label: string;
   isOrderable: boolean;
-  views: FieldViews[string];
   fieldMeta: JSONValue;
+  viewsIndex: number;
+  customViewsIndex: number | null;
+  views: FieldViews[number];
   controller: FieldController<unknown, JSONValue>;
 };
 
-export type BaseListMeta = {
+export type ListMeta = {
   key: string;
   path: string;
   label: string;
@@ -66,44 +66,14 @@ export type BaseListMeta = {
   initialColumns: string[];
   pageSize: number;
   labelField: string;
-  initialSort: null | {
-    direction: 'ASC' | 'DESC';
-    field: string;
-  };
-};
-
-export type SerializedListMeta = BaseListMeta & {
-  fields: {
-    [path: string]: SerializedFieldMeta;
-  };
-};
-
-export type ListMeta = BaseListMeta & {
-  fields: {
-    [path: string]: FieldMeta;
-  };
-};
-
-export type AdminConfig = {
-  components?: {
-    Logo?: ComponentType;
-  };
-};
-
-export type SerializedAdminMeta = {
-  enableSignout: boolean;
-  enableSessionItem: boolean;
-  lists: {
-    [list: string]: SerializedListMeta;
-  };
+  initialSort: null | { direction: 'ASC' | 'DESC'; field: string };
+  fields: { [path: string]: FieldMeta };
 };
 
 export type AdminMeta = {
   enableSignout: boolean;
   enableSessionItem: boolean;
-  lists: {
-    [list: string]: ListMeta;
-  };
+  lists: { [list: string]: ListMeta };
 };
 
 export type FieldProps<FieldControllerFn extends (...args: any) => FieldController<any, any>> = {
@@ -118,13 +88,16 @@ export type FieldProps<FieldControllerFn extends (...args: any) => FieldControll
   forceValidation?: boolean;
 };
 
-export type FieldViews = {
-  [type: string]: {
-    Field: (props: FieldProps<any>) => ReactElement;
+export type FieldViews = Record<
+  string,
+  {
+    Field: (props: FieldProps<any>) => ReactElement | null;
     Cell: CellComponent;
+    CardValue: CardValueComponent;
     controller: (args: FieldControllerConfig<any>) => FieldController<unknown, JSONValue>;
-  };
-};
+    allowedExportsOnCustomViews?: string[];
+  }
+>;
 
 export type CellComponent<
   FieldControllerFn extends (...args: any) => FieldController<any, any> = () => FieldController<
@@ -136,7 +109,48 @@ export type CellComponent<
     item: Record<string, any>;
     linkTo: { href: string; as: string } | undefined;
     field: ReturnType<FieldControllerFn>;
-  }): ReactElement;
+  }): ReactElement | null;
 
   supportsLinkTo?: boolean;
+};
+
+export type CardValueComponent<
+  FieldControllerFn extends (...args: any) => FieldController<any, any> = () => FieldController<
+    any,
+    any
+  >
+> = (props: { item: Record<string, any>; field: ReturnType<FieldControllerFn> }) => ReactElement;
+
+// Types used on the server by the Admin UI schema resolvers
+export type FieldMetaRootVal = {
+  path: string;
+  label: string;
+  isOrderable: boolean;
+  fieldMeta: JSONValue | null;
+  viewsIndex: number;
+  customViewsIndex: number | null;
+  listKey: string;
+};
+
+export type ListMetaRootVal = {
+  key: string;
+  path: string;
+  label: string;
+  singular: string;
+  plural: string;
+  initialColumns: string[];
+  pageSize: number;
+  labelField: string;
+  initialSort: { field: string; direction: 'ASC' | 'DESC' } | null;
+  fields: Array<FieldMetaRootVal>;
+  itemQueryName: string;
+  listQueryName: string;
+  description: string | null;
+};
+
+export type AdminMetaRootVal = {
+  enableSignout: boolean;
+  enableSessionItem: boolean;
+  lists: Array<ListMetaRootVal>;
+  listsByKey: Record<string, ListMetaRootVal>;
 };

@@ -1,26 +1,29 @@
 /** @jsx jsx */
 
-import { jsx, Stack, VisuallyHidden } from '@keystone-ui/core';
-import { FieldContainer, FieldLabel, TextInput } from '@keystone-ui/fields';
+import { useState } from 'react';
 
+import { CellContainer } from '@keystone-next/admin-ui/components';
 import {
+  CardValueComponent,
   CellComponent,
   FieldController,
   FieldControllerConfig,
   FieldProps,
-} from '@keystone-spike/types';
-import { Fragment, useState } from 'react';
-import { SegmentedControl } from '@keystone-ui/segmented-control';
+} from '@keystone-next/types';
 import { Button } from '@keystone-ui/button';
-import { LockIcon } from '@keystone-ui/icons/icons/LockIcon';
+import { Stack, Text, VisuallyHidden, jsx, useTheme } from '@keystone-ui/core';
+import { FieldContainer, FieldLabel, TextInput } from '@keystone-ui/fields';
 import { EyeIcon } from '@keystone-ui/icons/icons/EyeIcon';
+import { EyeOffIcon } from '@keystone-ui/icons/icons/EyeOffIcon';
 import { XIcon } from '@keystone-ui/icons/icons/XIcon';
+import { SegmentedControl } from '@keystone-ui/segmented-control';
 
 export const Field = ({
   field,
   value,
   onChange,
   forceValidation,
+  autoFocus,
 }: FieldProps<typeof controller>) => {
   const [showInputValue, setShowInputValue] = useState(false);
   const [touchedFirstInput, setTouchedFirstInput] = useState(false);
@@ -42,10 +45,11 @@ export const Field = ({
         value.isSet ? (
           'Password is set'
         ) : (
-          'Password is not set' // TODO: is this necessarily correct? what if it's null?
+          'Password is not set'
         )
       ) : value.kind === 'initial' ? (
         <Button
+          autoFocus={autoFocus}
           onClick={() => {
             onChange({
               kind: 'editing',
@@ -58,15 +62,16 @@ export const Field = ({
           {value.isSet ? 'Change Password' : 'Set Password'}
         </Button>
       ) : (
-        <div css={{ display: 'inline-flex', flexDirection: 'column' }}>
-          <Stack gap="medium" across>
+        <Stack gap="small">
+          <div css={{ display: 'flex' }}>
             <TextInput
+              autoFocus
               invalid={validation !== undefined}
               type={inputType}
               value={value.value}
               placeholder="New Password"
               onChange={event => {
-                onChange?.({
+                onChange({
                   ...value,
                   value: event.target.value,
                 });
@@ -75,13 +80,14 @@ export const Field = ({
                 setTouchedFirstInput(true);
               }}
             />
+            <Spacer />
             <TextInput
               invalid={validation !== undefined}
               type={inputType}
               value={value.confirm}
               placeholder="Confirm Password"
               onChange={event => {
-                onChange?.({
+                onChange({
                   ...value,
                   confirm: event.target.value,
                 });
@@ -90,14 +96,16 @@ export const Field = ({
                 setTouchedSecondInput(true);
               }}
             />
+            <Spacer />
             <Button
               onClick={() => {
                 setShowInputValue(!showInputValue);
               }}
             >
               <VisuallyHidden>{showInputValue ? 'Hide Text' : 'Show Text'}</VisuallyHidden>
-              {showInputValue ? <LockIcon /> : <EyeIcon />}
+              {showInputValue ? <EyeOffIcon /> : <EyeIcon />}
             </Button>
+            <Spacer />
             <Button
               onClick={() => {
                 onChange({
@@ -109,9 +117,13 @@ export const Field = ({
               <VisuallyHidden>Cancel</VisuallyHidden>
               <XIcon />
             </Button>
-          </Stack>
-          {validation && <div css={{ color: 'red' }}>{validation}</div>}
-        </div>
+          </div>
+          {validation && (
+            <Text color="red600" size="small">
+              {validation}
+            </Text>
+          )}
+        </Stack>
       )}
       {/* {item[`${field.path}_is_set`] === true ? 'Is set' : 'Is not set'} */}
     </FieldContainer>
@@ -119,7 +131,16 @@ export const Field = ({
 };
 
 export const Cell: CellComponent = ({ item, field }) => {
-  return <Fragment>{item[`${field.path}_is_set`] ? 'Is set' : 'Is not set'}</Fragment>;
+  return <CellContainer>{item[`${field.path}_is_set`] ? 'Is set' : 'Is not set'}</CellContainer>;
+};
+
+export const CardValue: CardValueComponent = ({ item, field }) => {
+  return (
+    <FieldContainer>
+      <FieldLabel>{field.label}</FieldLabel>
+      {item[`${field.path}_is_set`] ? 'Is set' : 'Is not set'}
+    </FieldContainer>
+  );
 };
 
 type PasswordController = FieldController<
@@ -185,4 +206,9 @@ export const controller = (
       },
     },
   };
+};
+
+const Spacer = () => {
+  const { spacing } = useTheme();
+  return <div css={{ width: spacing.small, flexShrink: 0 }} />;
 };

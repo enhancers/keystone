@@ -1,10 +1,11 @@
-import { graphQLSchemaExtension } from '@keystone-spike/keystone/schema';
+import type { GraphQLSchemaExtension, KeystoneContext } from '@keystone-next/types';
+
 import { AuthGqlNames } from '../types';
 
-import { attemptAuthentication } from '../lib/attemptAuthentication';
-import { getErrorMessage } from '../lib/getErrorMessage';
+import { validateSecret } from '../lib/validateSecret';
+import { getPasswordAuthError } from '../lib/getErrorMessage';
 
-export function getBaseAuthSchema({
+export function getBaseAuthSchema<I extends string, S extends string>({
   listKey,
   identityField,
   secretField,
@@ -12,39 +13,21 @@ export function getBaseAuthSchema({
   gqlNames,
 }: {
   listKey: string;
-  identityField: string;
-  secretField: string;
+  identityField: I;
+  secretField: S;
   protectIdentities: boolean;
   gqlNames: AuthGqlNames;
-}) {
-  return graphQLSchemaExtension({
+}): GraphQLSchemaExtension {
+  return {
     typeDefs: `
       # Auth
       union AuthenticatedItem = ${listKey}
       type Query {
         authenticatedItem: AuthenticatedItem
       }
-      enum AuthErrorCode {
-        PASSWORD_AUTH_FAILURE
-        PASSWORD_AUTH_IDENTITY_NOT_FOUND
-        PASSWORD_AUTH_SECRET_NOT_SET
-        PASSWORD_AUTH_MULTIPLE_IDENTITY_MATCHES
-        PASSWORD_AUTH_SECRET_MISMATCH
-        AUTH_TOKEN_REQUEST_IDENTITY_NOT_FOUND
-        AUTH_TOKEN_REQUEST_MULTIPLE_IDENTITY_MATCHES
-        AUTH_TOKEN_REDEMPTION_FAILURE
-        AUTH_TOKEN_REDEMPTION_IDENTITY_NOT_FOUND
-        AUTH_TOKEN_REDEMPTION_MULTIPLE_IDENTITY_MATCHES
-        AUTH_TOKEN_REDEMPTION_TOKEN_NOT_SET
-        AUTH_TOKEN_REDEMPTION_TOKEN_MISMATCH
-        AUTH_TOKEN_REDEMPTION_TOKEN_EXPIRED
-        AUTH_TOKEN_REDEMPTION_TOKEN_REDEEMED
-      }
-
       # Password auth
       type Mutation {
-        ${gqlNames.authenticateItemWithPassword}(${identityField}: String!, ${secretField}: String!):
-        ${gqlNames.ItemAuthenticationWithPasswordResult}!
+        ${gqlNames.authenticateItemWithPassword}(${identityField}: String!, ${secretField}: String!): ${gqlNames.ItemAuthenticationWithPasswordResult}!
       }
       union ${gqlNames.ItemAuthenticationWithPasswordResult} = ${gqlNames.ItemAuthenticationWithPasswordSuccess} | ${gqlNames.ItemAuthenticationWithPasswordFailure}
       type ${gqlNames.ItemAuthenticationWithPasswordSuccess} {
@@ -52,68 +35,84 @@ export function getBaseAuthSchema({
         item: ${listKey}!
       }
       type ${gqlNames.ItemAuthenticationWithPasswordFailure} {
-        code: AuthErrorCode!
+        code: PasswordAuthErrorCode!
         message: String!
+      }
+      enum PasswordAuthErrorCode {
+        FAILURE
+        IDENTITY_NOT_FOUND
+        SECRET_NOT_SET
+        MULTIPLE_IDENTITY_MATCHES
+        SECRET_MISMATCH
       }
     `,
     resolvers: {
       Mutation: {
-        async [gqlNames.authenticateItemWithPassword](root: any, args: any, ctx: any) {
-          const list = ctx.keystone.lists[listKey];
-          const result = await attemptAuthentication(
+        async [gqlNames.authenticateItemWithPassword](
+          root: any,
+          args: { [P in I]: string } & { [P in S]: string },
+          context
+        ) {
+          if (!context.startSession) {
+            throw new Error('No session implementation available on context');
+          }
+
+          const list = context.keystone.lists[listKey];
+          const itemAPI = context.sudo().lists[listKey];
+          const result = await validateSecret(
             list,
             identityField,
+            args[identityField],
             secretField,
             protectIdentities,
-            args
+            args[secretField],
+            itemAPI
           );
 
           if (!result.success) {
-            const message = getErrorMessage(
+            const message = getPasswordAuthError({
               identityField,
               secretField,
-              list.adminUILabels.singular,
-              list.adminUILabels.plural,
-              result.code
-            );
+              itemSingular: list.adminUILabels.singular,
+              itemPlural: list.adminUILabels.plural,
+              code: result.code,
+            });
             return { code: result.code, message };
           }
 
-          const sessionToken = await ctx.startSession({ listKey: 'User', itemId: result.item.id });
-          return { token: sessionToken, item: result.item };
+          // Update system state
+          const sessionToken = await context.startSession({ listKey, itemId: result.item.id });
+          return { sessionToken, item: result.item };
         },
       },
       Query: {
-        async authenticatedItem(root: any, args: any, ctx: any) {
-          if (typeof ctx.session?.itemId === 'string' && typeof ctx.session.listKey === 'string') {
-            const item = (
-              await ctx.keystone.lists[ctx.session.listKey].adapter.find({
-                id: ctx.session.itemId,
-              })
-            )[0];
-            if (!item) return null;
-            return {
-              ...item,
-              // TODO: Is there a better way of doing this?
-              __typename: ctx.session.listKey,
-            };
+        async authenticatedItem(root, args, { session, lists }) {
+          if (typeof session?.itemId === 'string' && typeof session.listKey === 'string') {
+            try {
+              return lists[session.listKey].findOne({
+                where: { id: session.itemId },
+                resolveFields: false,
+              });
+            } catch (e) {
+              return null;
+            }
           }
           return null;
         },
       },
       AuthenticatedItem: {
-        __resolveType(rootVal: any) {
-          return rootVal.__typename;
+        __resolveType(rootVal: any, { session }: KeystoneContext) {
+          return session?.listKey;
         },
       },
       // TODO: Is this the preferred approach for this?
       [gqlNames.ItemAuthenticationWithPasswordResult]: {
         __resolveType(rootVal: any) {
-          return rootVal.token
+          return rootVal.sessionToken
             ? gqlNames.ItemAuthenticationWithPasswordSuccess
             : gqlNames.ItemAuthenticationWithPasswordFailure;
         },
       },
     },
-  });
+  };
 }

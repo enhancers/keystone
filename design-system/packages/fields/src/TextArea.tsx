@@ -16,10 +16,10 @@ export type TextAreaProps = {
 } & Omit<InputProps, 'onChange' | 'size' | 'value'>;
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
-  ({ invalid = false, size = 'medium' as const, width = 'medium' as const, ...props }, ref) => {
-    const tokens = useInputTokens({ size, width, shape: 'square', fixHeight: false });
+  ({ invalid = false, size = 'medium' as const, width = 'large' as const, ...props }, ref) => {
+    const tokens = useInputTokens({ size, width, shape: 'square', isMultiline: true });
     const styles = useInputStyles({ invalid, tokens });
 
-    return <textarea ref={ref} css={styles} {...props} />;
+    return <textarea rows={4} ref={ref} css={styles} {...props} />;
   }
 );

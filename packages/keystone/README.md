@@ -13,12 +13,10 @@ const { Keystone } = require('@keystonejs/keystone');
 
 const keystone = new Keystone({
   adapter,
-  adapters,
   appVersion,
   cookie,
   cookieSecret,
   defaultAccess,
-  defaultAdapter,
   onConnect,
   queryLimits,
   sessionStore,
@@ -89,12 +87,6 @@ _**Default:**_
 
 Default list and field access. See the [Access Control](https://www.keystonejs.com/api/access-control#defaults) page for more details.
 
-### `defaultAdapter`
-
-_**Default:**_ `undefined`
-
-The name of the database adapter to use by default if multiple are provided.
-
 ### `onConnect`
 
 _**Default:**_ `undefined`
@@ -142,10 +134,10 @@ _**Default:**_ `['public']`
 
 | Method                | Description                                                                  |
 | --------------------- | ---------------------------------------------------------------------------- |
-| `connect`             | Manually connect to Adapters.                                                |
+| `connect`             | Manually connect to Adapter.                                                 |
 | `createAuthStrategy`  | Creates a new authentication middleware instance.                            |
 | `createList`          | Add a list to the `Keystone` schema.                                         |
-| `disconnect`          | Disconnect from all adapters.                                                |
+| `disconnect`          | Disconnect from the adapter.                                                 |
 | `extendGraphQLSchema` | Extend keystones generated schema with custom types, queries, and mutations. |
 | `prepare`             | Manually prepare `Keystone` middlewares.                                     |
 | `createContext`       | Create a `context` object that can be used with `executeGraphQL()`.          |
@@ -167,7 +159,7 @@ Please note: We use these internally but provide no support or assurance if used
 
 ### `connect()`
 
-Manually connect Keystone to the adapters. See [Custom Server](https://keystonejs.com/guides/custom-server).
+Manually connect Keystone to the adapter. See [Custom Server](https://keystonejs.com/guides/custom-server).
 
 ```javascript allowCopy=false showLanguage=false
 keystone.connect();
@@ -206,7 +198,7 @@ keystone.createList('Posts', {...});
 
 ### `disconnect()`
 
-Disconnect all adapters.
+Disconnect the adapter.
 
 ### `extendGraphQLSchema(config)`
 
@@ -298,10 +290,10 @@ Create a `context` object that can be used with `executeGraphQL()`.
 const { gql } = require('apollo-server-express');
 
 // Create a context which can execute GraphQL operations with no access control
-const context = keystone.createContext({ skipAccessControl: true })
+const context = keystone.createContext().sudo()
 
 // Execute a GraphQL operation with no access control
-const { data, errors } = keystone.executeGraphQL({ context, query: gql` ... `, variables: { ... }})
+const { data, errors } = await keystone.executeGraphQL({ context, query: gql` ... `, variables: { ... }})
 ```
 
 #### Config
@@ -322,10 +314,10 @@ Execute a server-side GraphQL query within the given context.
 const { gql } = require('apollo-server-express');
 
 // Create a context which can execute GraphQL operations with no access control
-const context = keystone.createContext({ skipAccessControl: true })
+const context = keystone.createContext().sudo()
 
 // Execute a GraphQL operation with no access control
-const { data, errors } = keystone.executeGraphQL({ context, query: gql` ... `, variables: { ... }})
+const { data, errors } = await keystone.executeGraphQL({ context, query: gql` ... `, variables: { ... }})
 ```
 
 #### Config

@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { ListMeta } from '@keystone-spike/types';
+import { ListMeta } from '@keystone-next/types';
 import { Button } from '@keystone-ui/button';
 import { Box, jsx } from '@keystone-ui/core';
 import { ChevronDownIcon } from '@keystone-ui/icons/icons/ChevronDownIcon';
@@ -73,7 +73,7 @@ export function FieldSelection({
     <Popover
       triggerRenderer={({ triggerProps }) => {
         return (
-          <Button weight="link" {...triggerProps}>
+          <Button weight="link" css={{ padding: 4 }} {...triggerProps}>
             <span css={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center' }}>
               {selectedFields.size} column{selectedFields.size === 1 ? '' : 's'}{' '}
               <ChevronDownIcon size="smallish" />

@@ -16,11 +16,11 @@ const {
 class KnexAdapter extends BaseKeystoneAdapter {
   constructor({ knexOptions = {}, schemaName = 'public' } = {}) {
     super(...arguments);
+    this.listAdapterClass = KnexListAdapter;
     this.client = knexOptions.client || 'postgres';
     this.name = 'knex';
     this.minVer = '9.6.5';
     this.schemaName = schemaName;
-    this.listAdapterClass = this.listAdapterClass || this.defaultListAdapterClass;
     this.rels = undefined;
   }
 
@@ -620,11 +620,12 @@ class QueryBuilder {
     this._addWheres(w => this._query.andWhere(w), listAdapter, where, baseTableAlias);
 
     // TODO: Implement configurable search fields for lists
-    const searchField = listAdapter.fieldAdaptersByPath['name'];
+    const searchFieldName = listAdapter.config.searchField || 'name';
+    const searchField = listAdapter.fieldAdaptersByPath[searchFieldName];
     if (search !== undefined && searchField) {
       if (searchField.fieldName === 'Text') {
         const f = escapeRegExp;
-        this._query.andWhere(`${baseTableAlias}.name`, '~*', f(search));
+        this._query.andWhere(`${baseTableAlias}.${searchFieldName}`, '~*', f(search));
       } else {
         this._query.whereRaw('false'); // Return no results
       }
@@ -648,17 +649,25 @@ class QueryBuilder {
         // SELECT ... ORDER BY <orderField>
         const [orderField, orderDirection] = this._getOrderFieldAndDirection(orderBy);
         const sortKey = listAdapter.fieldAdaptersByPath[orderField].sortKey || orderField;
-        this._query.orderBy(sortKey, orderDirection);
+        if (listAdapter.realKeys.includes(sortKey)) {
+          this._query.orderBy(sortKey, orderDirection);
+        }
       }
       if (sortBy !== undefined) {
         // SELECT ... ORDER BY <orderField>[, <orderField>, ...]
         this._query.orderBy(
-          sortBy.map(s => {
-            const [orderField, orderDirection] = this._getOrderFieldAndDirection(s);
-            const sortKey = listAdapter.fieldAdaptersByPath[orderField].sortKey || orderField;
+          sortBy
+            .map(s => {
+              const [orderField, orderDirection] = this._getOrderFieldAndDirection(s);
+              const sortKey = listAdapter.fieldAdaptersByPath[orderField].sortKey || orderField;
 
-            return { column: sortKey, order: orderDirection };
-          })
+              if (listAdapter.realKeys.includes(sortKey)) {
+                return { column: sortKey, order: orderDirection };
+              } else {
+                return undefined;
+              }
+            })
+            .filter(s => typeof s !== 'undefined')
         );
       }
     }
@@ -814,7 +823,7 @@ class QueryBuilder {
               .from(`${tableName} as ${subBaseTableAlias}`);
             // We need to filter out nulls before passing back to the top level query
             // otherwise postgres will give very incorrect answers.
-            subQuery.whereNotNull(columnName);
+            subQuery.whereNotNull(`${subBaseTableAlias}.${columnName}`);
           } else {
             const { near, far } = listAdapter._getNearFar(fieldAdapter);
             otherTableAlias = `${subBaseTableAlias}__${p}`;
@@ -1012,8 +1021,6 @@ class KnexFieldAdapter extends BaseFieldAdapter {
     };
   }
 }
-
-KnexAdapter.defaultListAdapterClass = KnexListAdapter;
 
 module.exports = {
   KnexAdapter,

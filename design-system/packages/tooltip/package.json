@@ -1,22 +1,22 @@
 {
   "name": "@keystone-ui/tooltip",
-  "version": "1.0.0",
-  "private": true,
+  "version": "2.0.0",
   "license": "MIT",
   "main": "dist/tooltip.cjs.js",
   "module": "dist/tooltip.esm.js",
   "peerDependencies": {
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0"
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
   },
   "devDependencies": {
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0"
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
   },
   "dependencies": {
-    "@babel/runtime": "^7.12.1",
-    "@keystone-ui/core": "*",
-    "@keystone-ui/popover": "*"
+    "@babel/runtime": "^7.12.18",
+    "@keystone-ui/core": "^2.0.0",
+    "@keystone-ui/popover": "^2.0.0",
+    "apply-ref": "^1.0.0"
   },
   "engines": {
     "node": ">=10.0.0"

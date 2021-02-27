@@ -1,35 +1,35 @@
 /* @jsx jsx */
 
-import { jsx } from '@keystone-ui/core';
-import { FieldContainer, FieldLabel, TextInput, TextArea } from '@keystone-ui/fields';
-import { CellLink, CellContainer } from '@keystone-spike/admin-ui/components';
-
+import { CellContainer, CellLink } from '@keystone-next/admin-ui/components';
 import {
+  CardValueComponent,
   CellComponent,
   FieldController,
   FieldControllerConfig,
   FieldProps,
-} from '@keystone-spike/types';
+} from '@keystone-next/types';
+import { jsx } from '@keystone-ui/core';
+import { FieldContainer, FieldLabel, TextArea, TextInput } from '@keystone-ui/fields';
 
-export const Field = ({ field, value, onChange }: FieldProps<typeof controller>) => (
+export const Field = ({ field, value, onChange, autoFocus }: FieldProps<typeof controller>) => (
   <FieldContainer>
     <FieldLabel>{field.label}</FieldLabel>
-    {field.displayMode === 'textarea' ? (
-      <TextArea
-        readOnly={onChange === undefined}
-        onChange={event => {
-          onChange?.(event.target.value);
-        }}
-        value={value}
-      />
+    {onChange ? (
+      field.displayMode === 'textarea' ? (
+        <TextArea
+          autoFocus={autoFocus}
+          onChange={event => onChange(event.target.value)}
+          value={value}
+        />
+      ) : (
+        <TextInput
+          autoFocus={autoFocus}
+          onChange={event => onChange(event.target.value)}
+          value={value}
+        />
+      )
     ) : (
-      <TextInput
-        readOnly={onChange === undefined}
-        onChange={event => {
-          onChange?.(event.target.value);
-        }}
-        value={value}
-      />
+      value
     )}
   </FieldContainer>
 );
@@ -39,6 +39,15 @@ export const Cell: CellComponent = ({ item, field, linkTo }) => {
   return linkTo ? <CellLink {...linkTo}>{value}</CellLink> : <CellContainer>{value}</CellContainer>;
 };
 Cell.supportsLinkTo = true;
+
+export const CardValue: CardValueComponent = ({ item, field }) => {
+  return (
+    <FieldContainer>
+      <FieldLabel>{field.label}</FieldLabel>
+      {item[field.path]}
+    </FieldContainer>
+  );
+};
 
 type Config = FieldControllerConfig<{ displayMode: 'input' | 'textarea' }>;
 

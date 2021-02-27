@@ -5,7 +5,7 @@ title: Using Keystone with Prisma
 
 # Using Keystone with Prisma
 
-> **Warning:** The Prisma adapter uses Prisma Migrate, which is currently [considered experimental](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-migrate). We do not recommend using the Prisma adapter for production systems yet.
+> **Warning:** The Prisma adapter uses Prisma Migrate, which is currently in [preview](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-migrate). We do not recommend using the Prisma adapter for production systems yet.
 
 In this guide we'll walk you through the steps to create a new project using Keystone and [Prisma](https://github.com/prisma/prisma), automatically run a migration when changing your Keystone schema, and use Prisma Client directly in a custom query.
 
@@ -96,7 +96,7 @@ keystone.extendGraphQLSchema({
     {
       schema: 'allComplete: Boolean',
       resolver: async () => {
-        const { prisma } = keystone.adapters.PrismaAdapter;
+        const { prisma } = keystone.adapter;
         const unfinished = await prisma.todo.count({ where: { isComplete: { equals: false } } });
         return unfinished === 0;
       },
@@ -105,7 +105,7 @@ keystone.extendGraphQLSchema({
 });
 ```
 
-This query is using the `PrismaClient` object stored at `keystone.adapters.PrismaAdapter.prisma` to directly run this query against the database.
+This query is using the `PrismaClient` object stored at `keystone.adapter.prisma` to directly run this query against the database.
 For more information on the Prisma Client API please consult the [Prisma docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
 
 > **Tip:** For full details on how to use up the Prisma Adapter, see the [Prisma Adapter API Docs](/packages/adapter-prisma/README.md)

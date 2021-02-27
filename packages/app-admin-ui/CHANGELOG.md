@@ -1,5 +1,65 @@
 # @keystonejs/app-admin-ui
 
+## 7.4.0
+
+### Minor Changes
+
+- [`4035218df`](https://github.com/keystonejs/keystone/commit/4035218df390beff3d42c0d3fc21335230d8a60d) [#4512](https://github.com/keystonejs/keystone/pull/4512) Thanks [@renovate](https://github.com/apps/renovate)! - Upgraded dependency `apollo-server-express` to `^2.21.0`. Apollo Server can now be installed with `graphql@15` without causing peer dependency errors or warnings.
+
+### Patch Changes
+
+- Updated dependencies [[`b97216a65`](https://github.com/keystonejs/keystone/commit/b97216a6526fffcca8232d86b115c28cb19587bf), [`4035218df`](https://github.com/keystonejs/keystone/commit/4035218df390beff3d42c0d3fc21335230d8a60d), [`8d0be8a89`](https://github.com/keystonejs/keystone/commit/8d0be8a89e2d9b89826365f81f47b8d8863b93d0)]:
+  - @keystonejs/fields@22.0.0
+
+## 7.3.13
+
+### Patch Changes
+
+- [`79967883e`](https://github.com/keystonejs/keystone/commit/79967883edaa86d0625235b558ff0f8f87e0b79f) [#4651](https://github.com/keystonejs/keystone/pull/4651) Thanks [@timleslie](https://github.com/timleslie)! - Removed `errorPolicy: 'all'` from `useMutation` to allow `onError` callback to be triggered. Thanks `@miguelvvs`.
+
+- Updated dependencies [[`b76241695`](https://github.com/keystonejs/keystone/commit/b7624169554b01dba2185ef43856a223d32f12be), [`81e86cbaa`](https://github.com/keystonejs/keystone/commit/81e86cbaa5c73633d6cb0ca2f84e834201e8bf9a)]:
+  - @keystonejs/utils@6.0.0
+  - @keystonejs/fields@21.0.1
+
+## 7.3.12
+
+### Patch Changes
+
+- [`f8873064b`](https://github.com/keystonejs/keystone/commit/f8873064b667d62001afe7950e33d019bcff7be3) [#4481](https://github.com/keystonejs/keystone/pull/4481) Thanks [@miguelvvs](https://github.com/miguelvvs)! - Implemented a workaround to show error in case of mutations errors, since an error in apollo client is preventing to show those messages with the original implementation.
+
+- Updated dependencies [[`364ac9254`](https://github.com/keystonejs/keystone/commit/364ac9254735befd2d4804789bb62464bb51ee5b), [`841be0bc9`](https://github.com/keystonejs/keystone/commit/841be0bc9d192cf64399231a543a9ba9ff41b9a0)]:
+  - @keystonejs/fields@21.0.0
+
+## 7.3.11
+
+### Patch Changes
+
+- [`fa12a18b0`](https://github.com/keystonejs/keystone/commit/fa12a18b077367563b1b69db55274e47a1bd5027) [#4377](https://github.com/keystonejs/keystone/pull/4377) Thanks [@jossmac](https://github.com/jossmac)! - Update apply-ref dependency
+
+- Updated dependencies [[`038b0ae65`](https://github.com/keystonejs/keystone/commit/038b0ae6586f8673de22046842b2ef993b0e1937), [`4eef4dc55`](https://github.com/keystonejs/keystone/commit/4eef4dc5587cc06f08ead5d5d05db2e9a786b8bc)]:
+  - @keystonejs/fields@20.1.2
+
+## 7.3.10
+
+### Patch Changes
+
+- Updated dependencies [[`c62a35fe0`](https://github.com/keystonejs/keystone/commit/c62a35fe0834ec60e2472b22feedda539d18a918), [`8d7056c8e`](https://github.com/keystonejs/keystone/commit/8d7056c8ed8d4fccfd61e64fc5fc2caf65899cee)]:
+  - @keystonejs/fields@20.1.1
+  - @arch-ui/confirm@0.0.23
+  - @arch-ui/dialog@0.0.25
+  - @arch-ui/drawer@0.0.25
+  - @arch-ui/dropdown@0.0.22
+  - @arch-ui/popout@0.0.23
+
+## 7.3.9
+
+### Patch Changes
+
+- [`2b682d2c1`](https://github.com/keystonejs/keystone/commit/2b682d2c1b6dc798a8913e4d2e09767c7a2980ac) [#4023](https://github.com/keystonejs/keystone/pull/4023) Thanks [@renovate](https://github.com/apps/renovate)! - Updated dependency `babel-preset-react-app` to `^10.0.0`.
+
+- Updated dependencies [[`a5e40e6c4`](https://github.com/keystonejs/keystone/commit/a5e40e6c4af1ab38cc2079a0f6e27d39d6b7d546), [`2d660b2a1`](https://github.com/keystonejs/keystone/commit/2d660b2a1dd013787e022cad3a0c70dbe08c60da)]:
+  - @keystonejs/fields@20.0.0
+
 ## 7.3.8
 
 ### Patch Changes

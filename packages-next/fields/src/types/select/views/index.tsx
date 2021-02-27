@@ -1,42 +1,41 @@
 /* @jsx jsx */
 
-import { jsx } from '@keystone-ui/core';
-import { FieldContainer, FieldLabel, Select, MultiSelect } from '@keystone-ui/fields';
-import { CellLink, CellContainer } from '@keystone-spike/admin-ui/components';
-
+import { CellContainer, CellLink } from '@keystone-next/admin-ui/components';
 import {
+  CardValueComponent,
   CellComponent,
   FieldController,
   FieldControllerConfig,
   FieldProps,
-} from '@keystone-spike/types';
+} from '@keystone-next/types';
+import { jsx } from '@keystone-ui/core';
+import { FieldContainer, FieldLabel, MultiSelect, Select } from '@keystone-ui/fields';
 import { SegmentedControl } from '@keystone-ui/segmented-control';
 
 export const Field = ({ field, value, onChange, autoFocus }: FieldProps<typeof controller>) => (
   <FieldContainer>
     <FieldLabel>{field.label}</FieldLabel>
-    <div css={{ display: 'inline-flex' }}>
-      {field.displayMode === 'select' ? (
-        <Select
-          isClearable
-          autoFocus={autoFocus}
-          options={field.options}
-          isDisabled={onChange === undefined}
-          onChange={value => {
-            onChange?.(value);
-          }}
-          value={value}
-        />
-      ) : (
-        <SegmentedControl
-          segments={field.options.map(x => x.label)}
-          selectedIndex={value ? field.options.findIndex(x => x.value === value.value) : undefined}
-          onChange={index => {
-            onChange?.(field.options[index]);
-          }}
-        />
-      )}
-    </div>
+    {field.displayMode === 'select' ? (
+      <Select
+        isClearable
+        autoFocus={autoFocus}
+        options={field.options}
+        isDisabled={onChange === undefined}
+        onChange={value => {
+          onChange?.(value);
+        }}
+        value={value}
+        portalMenu
+      />
+    ) : (
+      <SegmentedControl
+        segments={field.options.map(x => x.label)}
+        selectedIndex={value ? field.options.findIndex(x => x.value === value.value) : undefined}
+        onChange={index => {
+          onChange?.(field.options[index]);
+        }}
+      />
+    )}
   </FieldContainer>
 );
 
@@ -46,6 +45,17 @@ export const Cell: CellComponent<typeof controller> = ({ item, field, linkTo }) 
   return linkTo ? <CellLink {...linkTo}>{label}</CellLink> : <CellContainer>{label}</CellContainer>;
 };
 Cell.supportsLinkTo = true;
+
+export const CardValue: CardValueComponent<typeof controller> = ({ item, field }) => {
+  const label = field.options.find(x => x.value === item[field.path])?.label;
+
+  return (
+    <FieldContainer>
+      <FieldLabel>{field.label}</FieldLabel>
+      {label}
+    </FieldContainer>
+  );
+};
 
 type Config = FieldControllerConfig<{
   options: { label: string; value: string | number }[];

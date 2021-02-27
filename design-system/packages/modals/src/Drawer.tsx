@@ -1,10 +1,10 @@
 /** @jsx jsx */
 
-import { Fragment, MutableRefObject, ReactNode } from 'react';
+import { MutableRefObject, ReactNode } from 'react';
 import { Button } from '@keystone-ui/button';
 import { jsx, makeId, useId, useTheme, Heading, Stack, Divider } from '@keystone-ui/core';
 
-import { DrawerBase } from './DrawerBase';
+import { DrawerBase, WidthType } from './DrawerBase';
 import { useDrawerControllerContext } from './DrawerController';
 import { ActionsType } from './types';
 
@@ -14,7 +14,7 @@ type DrawerProps = {
   id?: string;
   initialFocusRef?: MutableRefObject<any>;
   title: string;
-  width?: 'narrow' | 'wide';
+  width?: WidthType;
 };
 
 export const Drawer = ({
@@ -27,7 +27,7 @@ export const Drawer = ({
 }: DrawerProps) => {
   const transitionState = useDrawerControllerContext();
   const { cancel, confirm } = actions;
-  const { spacing } = useTheme();
+  const { colors, spacing } = useTheme();
 
   const safeClose = actions.confirm.loading ? () => {} : actions.cancel.action;
 
@@ -43,7 +43,17 @@ export const Drawer = ({
       onClose={safeClose}
       width={width}
     >
-      <div css={{ padding: `${spacing.large}px ${spacing.xlarge}px` }}>
+      <div
+        css={{
+          alignItems: 'center',
+          borderBottom: `1px solid ${colors.border}`,
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexShrink: 0,
+          height: 80,
+          padding: `${spacing.large}px ${spacing.xlarge}px`,
+        }}
+      >
         <Heading id={headingId} type="h3">
           {title}
         </Heading>
@@ -51,39 +61,15 @@ export const Drawer = ({
 
       <div css={{ overflowY: 'auto', padding: `0 ${spacing.xlarge}px` }}>{children}</div>
 
-      {width === 'narrow' ? (
-        <div
-          css={{
-            display: 'flex',
-            flexShrink: 0,
-            flexDirection: 'column',
-            padding: `${spacing.large}px ${spacing.xlarge}px`,
-
-            '> button + button': {
-              marginTop: spacing.small,
-            },
-          }}
-        >
-          <Button tone="active" weight="bold" type="submit" isLoading={confirm.loading}>
-            {confirm.label}
-          </Button>
-          <Button onClick={safeClose} disabled={confirm.loading} weight="none" tone="passive">
-            {cancel.label}
-          </Button>
-        </div>
-      ) : (
-        <Fragment>
-          <Divider marginX="large" marginTop="medium" />
-          <Stack padding="large" across gap="small">
-            <Button tone="active" weight="bold" type="submit" isLoading={confirm.loading}>
-              {confirm.label}
-            </Button>
-            <Button onClick={safeClose} disabled={confirm.loading} weight="none" tone="passive">
-              {cancel.label}
-            </Button>
-          </Stack>
-        </Fragment>
-      )}
+      <Divider marginX="xlarge" />
+      <Stack padding="xlarge" across gap="small">
+        <Button tone="active" weight="bold" type="submit" isLoading={confirm.loading}>
+          {confirm.label}
+        </Button>
+        <Button onClick={safeClose} disabled={confirm.loading} weight="none" tone="passive">
+          {cancel.label}
+        </Button>
+      </Stack>
     </DrawerBase>
   );
 };

@@ -1,4 +1,4 @@
-import { JSONValue } from '@keystone-spike/types';
+import { JSONValue } from '@keystone-next/types';
 import { gql } from './apollo';
 
 export const staticAdminMetaQuery = gql`
@@ -33,7 +33,8 @@ export const staticAdminMetaQuery = gql`
             label
             isOrderable
             fieldMeta
-            views
+            viewsIndex
+            customViewsIndex
           }
         }
       }
@@ -83,7 +84,7 @@ export type StaticAdminMetaQuery = { __typename?: 'Query' } & {
               fields: Array<
                 { __typename: 'KeystoneAdminUIFieldMeta' } & Pick<
                   KeystoneAdminUIFieldMeta,
-                  'path' | 'label' | 'isOrderable' | 'fieldMeta' | 'views'
+                  'path' | 'label' | 'isOrderable' | 'fieldMeta' | 'viewsIndex' | 'customViewsIndex'
                 >
               >;
             }
@@ -151,7 +152,8 @@ type KeystoneAdminUIFieldMeta = {
   label: Scalars['String'];
   isOrderable: Scalars['Boolean'];
   fieldMeta: Maybe<Scalars['JSON']>;
-  views: Scalars['Int'];
+  viewsIndex: Scalars['Int'];
+  customViewsIndex: Maybe<Scalars['Int']>;
   createView: KeystoneAdminUIFieldMetaCreateView;
   listView: KeystoneAdminUIFieldMetaListView;
   itemView: Maybe<KeystoneAdminUIFieldMetaItemView>;
@@ -179,35 +181,3 @@ type KeystoneAdminUIFieldMetaListViewFieldMode = 'read' | 'hidden';
 type KeystoneAdminUIFieldMetaItemViewFieldMode = 'edit' | 'read' | 'hidden';
 
 type KeystoneAdminUISortDirection = 'ASC' | 'DESC';
-
-// a copy of StaticAdminMetaQuery but without the typenames written manually + & { listKey: string } on fields
-export type StaticAdminMetaQueryWithoutTypeNames = {
-  keystone: {
-    adminMeta: Pick<KeystoneAdminMeta, 'enableSignout' | 'enableSessionItem'> & {
-      lists: Array<
-        Pick<
-          KeystoneAdminUIListMeta,
-          | 'key'
-          | 'itemQueryName'
-          | 'listQueryName'
-          | 'path'
-          | 'label'
-          | 'singular'
-          | 'plural'
-          | 'description'
-          | 'initialColumns'
-          | 'pageSize'
-          | 'labelField'
-        > & {
-          fields: Array<
-            Pick<
-              KeystoneAdminUIFieldMeta,
-              'path' | 'label' | 'isOrderable' | 'fieldMeta' | 'views'
-            > & { listKey: string }
-          >;
-          initialSort: Maybe<{ field: Scalars['String']; direction: KeystoneAdminUISortDirection }>;
-        }
-      >;
-    };
-  };
-};

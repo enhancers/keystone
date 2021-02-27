@@ -11,7 +11,7 @@ export const buttonToneValues = [
   'negative',
   'help',
 ] as const;
-export const buttonWeightValues = ['bold', 'light', 'outline', 'none', 'link'] as const;
+export const buttonWeightValues = ['bold', 'light', 'none', 'link'] as const;
 
 export type SizeKey = typeof buttonSizeValues[number];
 export type ToneKey = typeof buttonToneValues[number];
@@ -94,23 +94,6 @@ export function useButtonTokens({
         background: tone.tint[2],
       },
     },
-    outline: {
-      borderColor: tone.border[0],
-      foreground: tone.foreground[0],
-      focus: {
-        shadow: `0 0 0 2px ${tone.focusRing}`,
-      },
-      hover: {
-        borderColor: tone.border[1],
-        foreground: tone.foreground[0],
-        background: tone.tint[0],
-      },
-      pressed: {
-        borderColor: tone.border[2],
-        foreground: tone.foreground[2],
-        background: tone.tint[2],
-      },
-    },
     none: {
       foreground: tone.foreground[0],
       focus: {
@@ -127,6 +110,8 @@ export function useButtonTokens({
     },
     link: {
       foreground: colors.foreground,
+      textDecoration: 'none',
+
       focus: {
         textDecoration: 'underline',
       },
@@ -148,7 +133,7 @@ export function useButtonTokens({
     borderWidth: size.borderWidth,
     disabledOpacity: opacity.disabled,
     fontSize: size.fontSize,
-    fontWeight: typography.fontWeight.semibold,
+    fontWeight: typography.fontWeight.medium,
     height: size.height,
     paddingX: size.paddingX,
     transition: `

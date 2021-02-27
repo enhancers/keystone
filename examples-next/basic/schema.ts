@@ -1,141 +1,185 @@
-import { createSchema, list, graphQLSchemaExtension, gql } from '@keystone-spike/keystone/schema';
+import { createSchema, list, graphQLSchemaExtension, gql } from '@keystone-next/keystone/schema';
 import {
   text,
   relationship,
   checkbox,
   password,
   timestamp,
-  integer,
   select,
   virtual,
-} from '@keystone-spike/fields';
-import { KeystoneCrudAPI } from '@keystone-spike/types';
+} from '@keystone-next/fields';
+import { document } from '@keystone-next/fields-document';
+// import { cloudinaryImage } from '@keystone-next/cloudinary';
+import { KeystoneListsAPI } from '@keystone-next/types';
 import { KeystoneListsTypeInfo } from './.keystone/schema-types';
+import { componentBlocks } from './admin/fieldViews/Content';
+
+// TODO: Can we generate this type based on withItemData in the main config?
+type AccessArgs = {
+  session?: {
+    itemId?: string;
+    listKey?: string;
+    data?: {
+      name?: string;
+      isAdmin: boolean;
+    };
+  };
+  item?: any;
+};
+export const access = {
+  isAdmin: ({ session }: AccessArgs) => !!session?.data?.isAdmin,
+};
 
 const randomNumber = () => Math.round(Math.random() * 10);
 
 export const lists = createSchema({
   User: list({
-    admin: {
+    ui: {
       listView: {
         initialColumns: ['name', 'posts'],
       },
     },
-    hooks: {
-      resolveInput: ({ resolvedData, originalInput }) => {
-        console.log('list hooks: resolveInput', { resolvedData, originalInput });
-        return resolvedData;
-      },
-      beforeChange({ resolvedData, originalInput }) {
-        console.log('list hooks: beforeChange', { resolvedData, originalInput });
-      },
-    },
-    access: {
-      //   read: ({ context }) => {
-      //     let postFilter = {
-      //       posts_some: {
-      //         published: true,
-      //       },
-      //     };
-      //     if (context.session?.itemId) {
-      //       return {
-      //         OR: [
-      //           {
-      //             id: context.session.itemId,
-      //           },
-      //           postFilter,
-      //         ],
-      //       };
-      //     }
-      //     return postFilter;
-      //   },
-      update: ({ itemId, context, originalInput }) => {
-        console.log(originalInput);
-        return itemId === context.session?.itemId;
-      },
-    },
-
     fields: {
-      name: text({ isRequired: true, hooks: {} }),
-      randomNumber: virtual({
-        resolver() {
-          return randomNumber();
-        },
-        graphQLReturnType: 'Float',
-      }),
-      email: text({
-        isRequired: true,
-        isUnique: true,
-        hooks: {},
-        // views: require.resolve('./admin/fieldViews/content'),
-      }),
-      password: password({
-        hooks: {},
-      }),
+      /** The user's first and last name. */
+      name: text({ isRequired: true }),
+      /** Email is used to log into the system. */
+      email: text({ isRequired: true, isUnique: true }),
+      // avatar: cloudinaryImage({
+      //   cloudinary: {
+      //     cloudName: '/* TODO */',
+      //     apiKey: '/* TODO */',
+      //     apiSecret: '/* TODO */',
+      //   },
+      // }),
+      /** Used to log in. */
+      password: password(),
+      /** Administrators have more access to various lists and fields. */
       isAdmin: checkbox({
         access: {
-          read: ({ session }) => !!session?.item?.isAdmin,
-          update: ({ session }) => !!session?.item?.isAdmin,
+          create: access.isAdmin,
+          read: access.isAdmin,
+          update: access.isAdmin,
         },
-        admin: {
+        ui: {
           createView: {
-            fieldMode: ({ session }) => (session?.item?.isAdmin ? 'edit' : 'hidden'),
+            fieldMode: args => (access.isAdmin(args) ? 'edit' : 'hidden'),
           },
-          // listView: {
-          //   fieldMode: ({ session }) => (session?.item?.isAdmin ? 'read' : 'hidden'),
-          // },
           itemView: {
-            fieldMode: ({ session }) => (session?.item?.isAdmin ? 'edit' : 'read'),
+            fieldMode: args => (access.isAdmin(args) ? 'edit' : 'read'),
           },
         },
       }),
       roles: text({}),
-      posts: relationship({ ref: 'Post.author', many: true }),
-      something: text({
-        admin: {
-          displayMode: 'textarea',
+      phoneNumbers: relationship({
+        ref: 'PhoneNumber.user',
+        many: true,
+        ui: {
+          // TODO: Work out how to use custom views to customise the card + edit / create forms
+          // views: './admin/fieldViews/user/phoneNumber',
+          displayMode: 'cards',
+          cardFields: ['type', 'value'],
+          inlineEdit: { fields: ['type', 'value'] },
+          inlineCreate: { fields: ['type', 'value'] },
+          linkToItem: true,
+          // removeMode: 'delete',
         },
       }),
-      oneTimeThing: text({
-        access: {
-          create: true,
-          read: true,
-          update: false,
+      posts: relationship({ ref: 'Post.author', many: true }),
+      randomNumber: virtual({
+        graphQLReturnType: 'Float',
+        resolver() {
+          return randomNumber();
         },
       }),
     },
   }),
-  Post: list({
-    admin: {
-      labelField: 'title',
+  PhoneNumber: list({
+    ui: {
+      isHidden: true,
+      // parentRelationship: 'user',
     },
     fields: {
-      title: text({
-        hooks: {
-          afterChange({}) {},
+      label: virtual({
+        resolver(item) {
+          return `${item.type} - ${item.value}`;
+        },
+        ui: {
+          listView: {
+            fieldMode: 'hidden',
+          },
+          itemView: {
+            fieldMode: 'hidden',
+          },
         },
       }),
-      views: integer({}),
-      content: text({}),
+      user: relationship({ ref: 'User.phoneNumbers' }),
+      type: select({
+        options: [
+          { label: 'Home', value: 'home' },
+          { label: 'Work', value: 'work' },
+          { label: 'Mobile', value: 'mobile' },
+        ],
+        ui: {
+          displayMode: 'segmented-control',
+        },
+      }),
+      value: text({}),
+    },
+  }),
+  Post: list({
+    fields: {
+      title: text(),
       status: select({
         options: [
           { label: 'Published', value: 'published' },
           { label: 'Draft', value: 'draft' },
         ],
-        admin: {
+        ui: {
           displayMode: 'segmented-control',
         },
       }),
-      publishDate: timestamp({}),
-      author: relationship({ ref: 'User.posts' }),
+      content: document({
+        ui: { views: require.resolve('./admin/fieldViews/Content.tsx') },
+        relationships: {
+          mention: {
+            kind: 'inline',
+            label: 'Mention',
+            listKey: 'User',
+          },
+          featuredAuthors: {
+            kind: 'prop',
+            listKey: 'User',
+            many: true,
+            selection: `posts(first: 10) {
+            title
+          }`,
+          },
+        },
+        formatting: true,
+        layouts: [
+          [1, 1],
+          [1, 1, 1],
+          [2, 1],
+          [1, 2],
+          [1, 2, 1],
+        ],
+        links: true,
+        dividers: true,
+        componentBlocks,
+      }),
+      publishDate: timestamp(),
+      author: relationship({
+        ref: 'User.posts',
+        ui: {
+          displayMode: 'cards',
+          cardFields: ['name', 'email'],
+          inlineEdit: { fields: ['name', 'email'] },
+          linkToItem: true,
+          inlineCreate: { fields: ['name', 'email'] },
+        },
+      }),
     },
   }),
-  // Settings: singleton({
-  //   fields: {
-  //     siteName: text(),
-  //     primaryColor: text(),
-  //   },
-  // }),
 });
 
 export const extendGraphqlSchema = graphQLSchemaExtension({
@@ -158,23 +202,19 @@ export const extendGraphqlSchema = graphQLSchemaExtension({
       },
     },
     Mutation: {
-      createRandomPosts(root: any, args: any, ctx: any) {
-        let crud: KeystoneCrudAPI<KeystoneListsTypeInfo> = ctx.crud;
-
+      createRandomPosts(root, args, context) {
+        // TODO: add a way to verify access control here, e.g
+        // await context.verifyAccessControl(userIsAdmin);
+        const lists: KeystoneListsAPI<KeystoneListsTypeInfo> = context.lists;
         const data = Array.from({ length: 238 }).map((x, i) => ({ data: { title: `Post ${i}` } }));
-        return crud.Post.createMany({ data });
+        return lists.Post.createMany({ data });
       },
     },
     Query: {
-      randomNumber: async (root: any, args: any, ctx: any) => {
-        // await ctx.startSession({ something: true });
-        console.log(ctx.session);
-        // await ctx.verifyAccessControl(userIsAdmin);
-        return {
-          number: randomNumber(),
-          generatedAt: Date.now(),
-        };
-      },
+      randomNumber: () => ({
+        number: randomNumber(),
+        generatedAt: Date.now(),
+      }),
     },
   },
 });

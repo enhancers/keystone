@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import { jsx, useTheme } from '@keystone-ui/core';
-import ReactSelect, { Props } from 'react-select';
+import ReactSelect, { Props, OptionsType } from 'react-select';
 import { useInputTokens } from './hooks/inputs';
 import { WidthType } from './types';
 
@@ -14,7 +14,7 @@ type Option = { label: string; value: string; isDisabled?: boolean };
 
 // this removes [key: string]: any from Props
 type BaseSelectProps = Pick<
-  Props<Option>,
+  Props<Option, boolean>,
   Exclude<KnownKeys<Props>, 'value' | 'onChange' | 'isMulti' | 'isOptionDisabled'>
 > & { width?: WidthType };
 
@@ -83,7 +83,9 @@ const useStyles = ({
       border: `1px solid ${palette.neutral400}`,
       boxShadow: '0 4px 11px hsla(0, 0%, 0%, 0.1)',
       borderRadius: tokens.borderRadius,
+      zIndex: 9999,
     }),
+    menuPortal: (provided: any) => ({ ...provided, zIndex: 9999 }),
     multiValue: (provided: any) => ({
       ...provided,
       backgroundColor: palette.neutral300,
@@ -109,13 +111,17 @@ const useStyles = ({
   };
 };
 
+const portalTarget = typeof document !== 'undefined' ? document.body : undefined;
+
 export function Select({
   onChange,
   value,
   width: widthKey = 'large',
+  portalMenu,
   ...props
 }: BaseSelectProps & {
   value: Option | null;
+  portalMenu?: true;
   onChange(value: Option | null): void;
 }) {
   const tokens = useInputTokens({ width: widthKey });
@@ -124,7 +130,7 @@ export function Select({
   return (
     <ReactSelect
       value={value}
-      css={{ width: tokens.width }}
+      // css={{ width: tokens.width }}
       styles={styles}
       onChange={value => {
         if (!value) {
@@ -135,6 +141,7 @@ export function Select({
       }}
       {...props}
       isMulti={false}
+      menuPortalTarget={portalMenu && portalTarget}
     />
   );
 }
@@ -143,30 +150,33 @@ export function MultiSelect({
   onChange,
   value,
   width: widthKey = 'large',
+  portalMenu,
   ...props
 }: BaseSelectProps & {
-  value: Option[];
-  onChange(value: Option[]): void;
+  value: OptionsType<Option>;
+  portalMenu?: true;
+  onChange(value: OptionsType<Option>): void;
 }) {
   const tokens = useInputTokens({ width: widthKey });
   const styles = useStyles({ tokens, multi: true });
 
   return (
     <ReactSelect
-      css={{ width: tokens.width }}
+      // css={{ width: tokens.width }}
       styles={styles}
       value={value}
       onChange={value => {
         if (!value) {
           onChange([]);
         } else if (Array.isArray(value)) {
-          onChange(value);
+          onChange(value as Option[]);
         } else {
           onChange([value as any]);
         }
       }}
       {...props}
       isMulti
+      menuPortalTarget={portalMenu && portalTarget}
     />
   );
 }

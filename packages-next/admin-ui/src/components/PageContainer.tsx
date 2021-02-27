@@ -1,42 +1,48 @@
 /* @jsx jsx */
 
 import { jsx, useTheme } from '@keystone-ui/core';
-import type { HTMLAttributes, ReactNode } from 'react';
+import { Fragment, HTMLAttributes, ReactNode } from 'react';
 
 import { Navigation } from './Navigation';
+import { Logo } from './Logo';
 
 type PageContainerProps = {
   children: ReactNode;
+  header: ReactNode;
 };
 
-const SIDEBAR_WIDTH = 320;
+export const HEADER_HEIGHT = 80;
 
 const PageWrapper = (props: HTMLAttributes<HTMLElement>) => {
-  const { colors } = useTheme();
-  return <div css={{ backgroundColor: colors.backgroundMuted, display: 'flex' }} {...props} />;
+  // const { colors } = useTheme();
+  return (
+    <Fragment>
+      {/* TODO: not sure where to put this */}
+      <style>{`body { overflow: hidden; }`}</style>
+      <div
+        css={{
+          // background: colors.background,
+          display: 'grid',
+          gridTemplateColumns: `minmax(300px, 1fr) 4fr`,
+          gridTemplateRows: `${HEADER_HEIGHT}px auto`,
+          height: '100vh',
+        }}
+        {...props}
+      />
+    </Fragment>
+  );
 };
 
 const Sidebar = (props: HTMLAttributes<HTMLElement>) => {
-  const { colors } = useTheme();
+  // const { colors } = useTheme();
 
   return (
     <aside
       css={{
-        borderRight: `1px solid transparent`,
-        boxSizing: 'border-box',
-        flexShrink: 0,
-        height: '100vh',
-        minWidth: 0,
+        // borderRight: `1px solid ${colors.border}`,
+        minWidth: 0, // resolves collapsing issues in children
         overflowY: 'auto',
-        position: 'sticky',
-        top: 0,
-        width: SIDEBAR_WIDTH,
         WebkitOverflowScrolling: 'touch',
-        transition: 'border-color 100ms ease-in-out',
-
-        ':hover': {
-          borderColor: colors.border,
-        },
       }}
       {...props}
     />
@@ -44,27 +50,55 @@ const Sidebar = (props: HTMLAttributes<HTMLElement>) => {
 };
 
 const Content = (props: HTMLAttributes<HTMLElement>) => {
-  const { spacing } = useTheme();
+  const { colors, spacing } = useTheme();
 
   return (
-    <div
+    <main
       css={{
+        backgroundColor: colors.background,
         boxSizing: 'border-box',
-        flex: 1,
-        minHeight: '100vh',
-        minWidth: 1, // resolves collapsing issues in children
+        minWidth: 0, // resolves collapsing issues in children
         paddingLeft: spacing.xlarge,
         paddingRight: spacing.xlarge,
-        paddingBottom: spacing.xlarge,
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
       }}
       {...props}
     />
   );
 };
 
-export const PageContainer = ({ children }: PageContainerProps) => {
+export const PageContainer = ({ children, header }: PageContainerProps) => {
+  const { colors, spacing } = useTheme();
   return (
     <PageWrapper>
+      <div
+        css={{
+          alignItems: 'center',
+          // borderRight: `1px solid ${colors.border}`,
+          borderBottom: `1px solid ${colors.border}`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          paddingLeft: spacing.xlarge,
+          paddingRight: spacing.xlarge,
+        }}
+      >
+        <Logo />
+      </div>
+      <header
+        css={{
+          alignItems: 'center',
+          backgroundColor: colors.background,
+          borderBottom: `1px solid ${colors.border}`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          minWidth: 0, // fix flex text truncation
+          paddingLeft: spacing.xlarge,
+          paddingRight: spacing.xlarge,
+        }}
+      >
+        {header}
+      </header>
       <Sidebar>
         <Navigation />
       </Sidebar>

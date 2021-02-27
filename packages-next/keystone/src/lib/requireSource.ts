@@ -7,12 +7,11 @@ sets rootMode: "upward-optional"
 import { addHook } from 'pirates';
 import * as babel from '@babel/core';
 import sourceMapSupport from 'source-map-support';
-import path from 'path';
 
 const EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx'];
 const babelPlugins = [require.resolve('@babel/plugin-transform-modules-commonjs')];
 
-export const hook = () => {
+const hook = () => {
   let compiling = false;
   let sourceMaps: Record<string, any> = {};
   let needsToInstallSourceMapSupport = true;
@@ -28,10 +27,7 @@ export const hook = () => {
         retrieveSourceMap(source) {
           let map = sourceMaps[source];
           if (map !== undefined) {
-            return {
-              url: source,
-              map,
-            };
+            return { url: source, map };
           } else {
             return null;
           }
@@ -41,12 +37,26 @@ export const hook = () => {
     }
     try {
       compiling = true;
-      let output = babel.transformSync(code, {
+      const partialConfig = babel.loadPartialConfig({
         plugins: babelPlugins,
         filename,
         sourceMaps: 'both',
         rootMode: 'upward-optional',
       })!;
+      let options = partialConfig.options;
+      if (!partialConfig.hasFilesystemConfig()) {
+        options = {
+          ...options,
+          // note that we're explicitly removing the plugin(@babel/plugin-transform-modules-commonjs)
+          // we added above because for some reason, it interacts poorly with next/babel
+          // and results in stray ESM imports of React when they should be CJS
+          // note that we're never going to be removing a consumer's Babel config since
+          // that would make hasFilesystemConfig() return true
+          plugins: [],
+          presets: [require.resolve('next/babel')],
+        };
+      }
+      const output = babel.transformSync(code, options)!;
       sourceMaps[filename] = output.map;
       return output.code!;
     } finally {
@@ -63,9 +73,4 @@ export const requireSource = (filePath: string) => {
   const result = require(filePath);
   unregister();
   return result;
-};
-
-export const requireProjectFile = (name: string) => {
-  const filePath = path.join(process.cwd(), name);
-  return requireSource(filePath);
 };

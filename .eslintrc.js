@@ -1,3 +1,8 @@
+const reactComponentTypeMessage = {
+  message:
+    'This type includes the children prop which is generally wrong, instead of using this type, type the props of the component',
+};
+
 module.exports = {
   parser: '@typescript-eslint/parser',
   env: {
@@ -51,6 +56,7 @@ module.exports = {
     'jest/no-export': 'off',
     'jest/valid-title': 'off',
     'jest/no-try-expect': 'off',
+    'jest/no-disabled-tests': 'error',
     'object-curly-spacing': ['error', 'always'],
     quotes: ['error', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
     'react/jsx-boolean-value': 'warn',
@@ -79,6 +85,7 @@ module.exports = {
     '@typescript-eslint/ban-types': [
       'error',
       {
+        extendDefaults: false,
         types: {
           Function:
             '`Function` types are unsafe. Use more specific function types instead. e.g. (arg: number) => string',
@@ -87,6 +94,12 @@ module.exports = {
               'The `String` type refers to the String object which is probably not what you want, you probably want `string` instead which refers to the string primitive type.',
             fixWith: 'string',
           },
+          ComponentType: reactComponentTypeMessage,
+          FC: reactComponentTypeMessage,
+          SFC: reactComponentTypeMessage,
+          'React.ComponentType': reactComponentTypeMessage,
+          'React.FC': reactComponentTypeMessage,
+          'React.SFC': reactComponentTypeMessage,
         },
       },
     ],

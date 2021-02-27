@@ -1,40 +1,42 @@
-const { Text, Relationship } = require('@keystonejs/fields');
-const { multiAdapterRunners, setupServer } = require('@keystonejs/test-utils');
+const { text, relationship } = require('@keystone-next/fields');
+const { createSchema, list } = require('@keystone-next/keystone/schema');
+const { multiAdapterRunners, setupFromConfig } = require('@keystonejs/test-utils');
 const { createItem, createItems } = require('@keystonejs/server-side-graphql-client');
 
 function setupKeystone(adapterName) {
-  return setupServer({
+  return setupFromConfig({
     adapterName,
-    createLists: keystone => {
-      keystone.createList('User', {
-        fields: {
-          company: { type: Relationship, ref: 'Company' },
-          posts: { type: Relationship, ref: 'Post', many: true },
-        },
-      });
-
-      keystone.createList('Company', {
-        fields: {
-          name: { type: Text },
-        },
-      });
-
-      keystone.createList('Post', {
-        fields: {
-          content: { type: Text },
-        },
-      });
-    },
+    config: createSchema({
+      lists: {
+        User: list({
+          fields: {
+            company: relationship({ ref: 'Company' }),
+            posts: relationship({ ref: 'Post', many: true }),
+          },
+        }),
+        Company: list({
+          fields: {
+            name: text(),
+          },
+        }),
+        Post: list({
+          fields: {
+            content: text(),
+          },
+        }),
+      },
+    }),
   });
 }
+
 multiAdapterRunners().map(({ runner, adapterName }) =>
   describe(`Adapter: ${adapterName}`, () => {
     describe('relationship filtering', () => {
       test(
         'nested to-many relationships can be filtered',
-        runner(setupKeystone, async ({ keystone }) => {
+        runner(setupKeystone, async ({ context }) => {
           const ids = await createItems({
-            keystone,
+            context,
             listKey: 'Post',
             items: [
               { data: { content: 'Hello world' } },
@@ -44,7 +46,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
           });
 
           const [user, user2] = await createItems({
-            keystone,
+            context,
             listKey: 'User',
             items: [
               { data: { posts: { connect: ids } } },
@@ -52,7 +54,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
             ],
           });
 
-          const { data, errors } = await keystone.executeGraphQL({
+          const { data, errors } = await context.executeGraphQL({
             query: `
         query {
           allUsers {
@@ -82,11 +84,12 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
       );
 
       // this is failing on GitHub Actions rn for some unknown reason so going to disable it for now
+      // eslint-disable-next-line jest/no-disabled-tests
       test.skip(
         'nested to-many relationships can be limited',
-        runner(setupKeystone, async ({ keystone }) => {
+        runner(setupKeystone, async ({ context }) => {
           const ids = await createItems({
-            keystone,
+            context,
             listKey: 'Post',
             items: [
               { data: { content: 'Hello world' } },
@@ -96,7 +99,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
           });
 
           const [user, user2] = await createItems({
-            keystone,
+            context,
             listKey: 'User',
             items: [
               { data: { posts: { connect: ids } } },
@@ -104,7 +107,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
             ],
           });
 
-          const { data, errors } = await keystone.executeGraphQL({
+          const { data, errors } = await context.executeGraphQL({
             query: `
         query {
           allUsers {
@@ -126,9 +129,9 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
 
       test(
         'nested to-many relationships can be filtered within AND clause',
-        runner(setupKeystone, async ({ keystone }) => {
+        runner(setupKeystone, async ({ context }) => {
           const ids = await createItems({
-            keystone,
+            context,
             listKey: 'Post',
             items: [
               { data: { content: 'Hello world' } },
@@ -138,7 +141,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
           });
 
           const [user, user2] = await createItems({
-            keystone,
+            context,
             listKey: 'User',
             items: [
               { data: { posts: { connect: ids } } },
@@ -146,7 +149,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
             ],
           });
 
-          const { data, errors } = await keystone.executeGraphQL({
+          const { data, errors } = await context.executeGraphQL({
             query: `
         query {
           allUsers {
@@ -173,9 +176,9 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
 
       test(
         'nested to-many relationships can be filtered within OR clause',
-        runner(setupKeystone, async ({ keystone }) => {
+        runner(setupKeystone, async ({ context }) => {
           const ids = await createItems({
-            keystone,
+            context,
             listKey: 'Post',
             items: [
               { data: { content: 'Hello world' } },
@@ -185,7 +188,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
           });
 
           const [user, user2] = await createItems({
-            keystone,
+            context,
             listKey: 'User',
             items: [
               { data: { posts: { connect: ids } } },
@@ -193,7 +196,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
             ],
           });
 
-          const { data, errors } = await keystone.executeGraphQL({
+          const { data, errors } = await context.executeGraphQL({
             query: `
         query {
           allUsers {
@@ -227,10 +230,10 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
 
       test(
         'Filtering out all items by nested field should return []',
-        runner(setupKeystone, async ({ keystone }) => {
-          await createItem({ keystone, listKey: 'User', item: {} });
+        runner(setupKeystone, async ({ context }) => {
+          await createItem({ context, listKey: 'User', item: {} });
 
-          const result = await keystone.executeGraphQL({
+          const result = await context.executeGraphQL({
             query: `
               query {
                 allUsers(where: { posts_some: { content_contains: "foo" } }) {
@@ -250,9 +253,9 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
     describe('relationship meta filtering', () => {
       test(
         'nested to-many relationships return meta info',
-        runner(setupKeystone, async ({ keystone }) => {
+        runner(setupKeystone, async ({ context }) => {
           const ids = await createItems({
-            keystone,
+            context,
             listKey: 'Post',
             items: [
               { data: { content: 'Hello world' } },
@@ -262,7 +265,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
           });
 
           const [user, user2] = await createItems({
-            keystone,
+            context,
             listKey: 'User',
             items: [
               { data: { posts: { connect: ids } } },
@@ -270,7 +273,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
             ],
           });
 
-          const { data, errors } = await keystone.executeGraphQL({
+          const { data, errors } = await context.executeGraphQL({
             query: `
         query {
           allUsers {
@@ -293,9 +296,9 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
 
       test(
         'nested to-many relationship meta can be filtered',
-        runner(setupKeystone, async ({ keystone }) => {
+        runner(setupKeystone, async ({ context }) => {
           const ids = await createItems({
-            keystone,
+            context,
             listKey: 'Post',
             items: [
               { data: { content: 'Hello world' } },
@@ -305,7 +308,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
           });
 
           const [user, user2] = await createItems({
-            keystone,
+            context,
             listKey: 'User',
             items: [
               { data: { posts: { connect: ids } } },
@@ -313,7 +316,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
             ],
           });
 
-          const { data, errors } = await keystone.executeGraphQL({
+          const { data, errors } = await context.executeGraphQL({
             query: `
         query {
           allUsers {
@@ -338,9 +341,9 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
 
       test(
         'nested to-many relationship meta can be limited',
-        runner(setupKeystone, async ({ keystone }) => {
+        runner(setupKeystone, async ({ context }) => {
           const ids = await createItems({
-            keystone,
+            context,
             listKey: 'Post',
             items: [
               { data: { content: 'Hello world' } },
@@ -350,7 +353,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
           });
 
           const [user, user2] = await createItems({
-            keystone,
+            context,
             listKey: 'User',
             items: [
               { data: { posts: { connect: ids } } },
@@ -358,7 +361,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
             ],
           });
 
-          const { data, errors } = await keystone.executeGraphQL({
+          const { data, errors } = await context.executeGraphQL({
             query: `
         query {
           allUsers {
@@ -381,9 +384,9 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
 
       test(
         'nested to-many relationship meta can be filtered within AND clause',
-        runner(setupKeystone, async ({ keystone }) => {
+        runner(setupKeystone, async ({ context }) => {
           const ids = await createItems({
-            keystone,
+            context,
             listKey: 'Post',
             items: [
               { data: { content: 'Hello world' } },
@@ -393,7 +396,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
           });
 
           const [user, user2] = await createItems({
-            keystone,
+            context,
             listKey: 'User',
             items: [
               { data: { posts: { connect: ids } } },
@@ -401,7 +404,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
             ],
           });
 
-          const { data, errors } = await keystone.executeGraphQL({
+          const { data, errors } = await context.executeGraphQL({
             query: `
         query {
           allUsers {
@@ -429,9 +432,9 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
 
       test(
         'nested to-many relationship meta can be filtered within OR clause',
-        runner(setupKeystone, async ({ keystone }) => {
+        runner(setupKeystone, async ({ context }) => {
           const ids = await createItems({
-            keystone,
+            context,
             listKey: 'Post',
             items: [
               { data: { content: 'Hello world' } },
@@ -441,7 +444,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
           });
 
           const [user, user2] = await createItems({
-            keystone,
+            context,
             listKey: 'User',
             items: [
               { data: { posts: { connect: ids } } },
@@ -449,7 +452,7 @@ multiAdapterRunners().map(({ runner, adapterName }) =>
             ],
           });
 
-          const { data, errors } = await keystone.executeGraphQL({
+          const { data, errors } = await context.executeGraphQL({
             query: `
               query {
                 allUsers {

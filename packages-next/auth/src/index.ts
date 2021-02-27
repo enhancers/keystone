@@ -1,14 +1,14 @@
 import url from 'url';
-
+import { mergeSchemas } from '@graphql-tools/merge';
 import {
   AdminFileToWrite,
   BaseGeneratedListTypes,
   KeystoneConfig,
-  SerializedFieldMeta,
-} from '@keystone-spike/types';
-import { password, timestamp } from '@keystone-spike/fields';
+  ExtendGraphqlSchema,
+} from '@keystone-next/types';
+import { password, timestamp } from '@keystone-next/fields';
 
-import { AuthConfig, Auth, AuthGqlNames } from './types';
+import { AuthConfig, Auth, AuthGqlNames, AuthTokenTypeConfig } from './types';
 
 import { getBaseAuthSchema } from './gql/getBaseAuthSchema';
 import { getInitFirstItemSchema } from './gql/getInitFirstItemSchema';
@@ -17,6 +17,63 @@ import { getMagicAuthLinkSchema } from './gql/getMagicAuthLinkSchema';
 
 import { signinTemplate } from './templates/signin';
 import { initTemplate } from './templates/init';
+import { KeystoneContext } from '@keystone-next/types';
+
+const getSchemaExtension = ({
+  identityField,
+  listKey,
+  protectIdentities,
+  secretField,
+  gqlNames,
+  initFirstItem,
+  passwordResetLink,
+  magicAuthLink,
+}: {
+  identityField: string;
+  listKey: string;
+  protectIdentities: boolean;
+  secretField: string;
+  gqlNames: AuthGqlNames;
+  initFirstItem?: any;
+  passwordResetLink?: any;
+  magicAuthLink?: AuthTokenTypeConfig;
+}): ExtendGraphqlSchema => (schema, keystone) =>
+  [
+    getBaseAuthSchema({
+      identityField,
+      listKey,
+      protectIdentities,
+      secretField,
+      gqlNames,
+    }),
+    initFirstItem &&
+      getInitFirstItemSchema({
+        listKey,
+        fields: initFirstItem.fields,
+        itemData: initFirstItem.itemData,
+        gqlNames,
+        keystone,
+      }),
+    passwordResetLink &&
+      getPasswordResetSchema({
+        identityField,
+        listKey,
+        protectIdentities,
+        secretField,
+        passwordResetLink,
+        gqlNames,
+      }),
+    magicAuthLink &&
+      getMagicAuthLinkSchema({
+        identityField,
+        listKey,
+        protectIdentities,
+        magicAuthLink,
+        gqlNames,
+      }),
+  ]
+    .filter(x => x)
+    .reduce((s, extension) => mergeSchemas({ schemas: [s], ...extension }), schema);
 
 /**
  * createAuth function
@@ -26,7 +83,7 @@ import { initTemplate } from './templates/init';
 export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
   listKey,
   secretField,
-  protectIdentities = false,
+  protectIdentities = true,
   gqlSuffix = '',
   initFirstItem,
   identityField,
@@ -61,7 +118,7 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
   // updated to use our crud API, we can set these to static false values.
   const fieldConfig = {
     access: () => false,
-    admin: {
+    ui: {
       createView: { fieldMode: 'hidden' },
       itemView: { fieldMode: 'hidden' },
       listView: { fieldMode: 'hidden' },
@@ -80,17 +137,17 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
   /**
    * adminPageMiddleware
    *
-   * Should be added to the admin.pageMiddleware stack.
+   * Should be added to the ui.pageMiddleware stack.
    *
    * Redirects:
    *  - from the signin or init pages to the index when a valid session is present
    *  - to the init page when initFirstItem is configured, and there are no user in the database
    *  - to the signin page when no valid session is present
    */
-  const adminPageMiddleware: Auth['admin']['pageMiddleware'] = async ({
+  const adminPageMiddleware: Auth['ui']['pageMiddleware'] = async ({
     req,
     isValidSession,
-    keystone,
+    createContext,
     session,
   }) => {
     const pathname = url.parse(req.url!).pathname!;
@@ -106,12 +163,7 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
     }
 
     if (!session && initFirstItem) {
-      const { count } = await keystone.keystone.lists[listKey].adapter.itemsQuery(
-        {},
-        {
-          meta: true,
-        }
-      );
+      const count = await createContext({}).sudo().lists[listKey].count({});
       if (count === 0) {
         if (pathname !== '/init') {
           return {
@@ -126,7 +178,7 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
     if (!session && pathname !== '/signin') {
       return {
         kind: 'redirect',
-        to: '/signin',
+        to: `/signin?from=${encodeURIComponent(req.url!)}`,
       };
     }
   };
@@ -135,92 +187,51 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
    * additionalFiles
    *
    * This function adds files to be generated into the Admin UI build. Must be added to the
-   * admin.additionalFiles config.
+   * ui.additionalFiles config.
    *
    * The signin page is always included, and the init page is included when initFirstItem is set
    */
-  const additionalFiles: Auth['admin']['getAdditionalFiles'] = keystone => {
+  const additionalFiles: Auth['ui']['getAdditionalFiles'] = () => {
     let filesToWrite: AdminFileToWrite[] = [
       {
         mode: 'write',
         outputPath: 'pages/signin.js',
-        src: signinTemplate({ gqlNames }),
+        src: signinTemplate({ gqlNames, identityField, secretField }),
       },
     ];
     if (initFirstItem) {
-      const fields: Record<string, SerializedFieldMeta> = {};
-      for (const fieldPath of initFirstItem.fields) {
-        fields[fieldPath] = keystone.adminMeta.lists[listKey].fields[fieldPath];
-      }
-
       filesToWrite.push({
         mode: 'write',
         outputPath: 'pages/init.js',
         // wonder what this template expects from config...
-        src: initTemplate({ listKey, initFirstItem, fields }),
+        src: initTemplate({ listKey, initFirstItem }),
       });
     }
     return filesToWrite;
   };
 
   /**
-   * adminPublicPages
+   * publicAuthPages
    *
-   * Must be added to the admin.publicPages config
+   * Must be added to the ui.publicPages config
    */
-  const adminPublicPages = ['/signin', '/init'];
+  const publicAuthPages = ['/signin', '/init'];
 
   /**
    * extendGraphqlSchema
    *
    * Must be added to the extendGraphqlSchema config. Can be composed.
    */
-  let extendGraphqlSchema = getBaseAuthSchema({
+  const extendGraphqlSchema = getSchemaExtension({
     identityField,
     listKey,
     protectIdentities,
     secretField,
     gqlNames,
+    initFirstItem,
+    passwordResetLink,
+    magicAuthLink,
   });
-
-  // Wrap extendGraphqlSchema to add optional functionality
-  if (initFirstItem) {
-    const existingExtendGraphqlSchema = extendGraphqlSchema;
-    const extension = getInitFirstItemSchema({
-      listKey: listKey,
-      fields: initFirstItem.fields,
-      itemData: initFirstItem.itemData,
-      gqlNames,
-    });
-    extendGraphqlSchema = (schema, keystone) =>
-      extension(existingExtendGraphqlSchema(schema, keystone), keystone);
-  }
-  if (passwordResetLink) {
-    const existingExtendGraphqlSchema = extendGraphqlSchema;
-    const extension = getPasswordResetSchema({
-      identityField,
-      listKey,
-      protectIdentities,
-      secretField,
-      passwordResetLink,
-      gqlNames,
-    });
-    extendGraphqlSchema = (schema, keystone) =>
-      extension(existingExtendGraphqlSchema(schema, keystone), keystone);
-  }
-  if (magicAuthLink) {
-    const existingExtendGraphqlSchema = extendGraphqlSchema;
-    const extension = getMagicAuthLinkSchema({
-      identityField,
-      listKey,
-      protectIdentities,
-      secretField,
-      magicAuthLink,
-      gqlNames,
-    });
-    extendGraphqlSchema = (schema, keystone) =>
-      extension(existingExtendGraphqlSchema(schema, keystone), keystone);
-  }
 
   /**
    * validateConfig
@@ -231,9 +242,7 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
     const specifiedListConfig = keystoneConfig.lists[listKey];
     if (keystoneConfig.lists[listKey] === undefined) {
       throw new Error(
-        `A createAuth() invocation specifies the list ${JSON.stringify(
-          listKey
-        )} but no list with that key has been defined.`
+        `A createAuth() invocation specifies the list "${listKey}" but no list with that key has been defined.`
       );
     }
 
@@ -241,9 +250,7 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
     const identityFieldConfig = specifiedListConfig.fields[identityField];
     if (identityFieldConfig === undefined) {
       throw new Error(
-        `A createAuth() invocation for the ${JSON.stringify(
-          listKey
-        )} list specifies ${JSON.stringify(
+        `A createAuth() invocation for the "${listKey}" list specifies ${JSON.stringify(
           identityField
         )} as its identityField but no field with that key exists on the list.`
       );
@@ -253,9 +260,7 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
     const secretFieldConfig = specifiedListConfig.fields[secretField];
     if (secretFieldConfig === undefined) {
       throw new Error(
-        `A createAuth() invocation for the ${JSON.stringify(
-          listKey
-        )} list specifies ${JSON.stringify(
+        `A createAuth() invocation for the "${listKey}" list specifies ${JSON.stringify(
           secretField
         )} as its secretField but no field with that key exists on the list.`
       );
@@ -267,9 +272,7 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
     const secretTypename = secretFieldConfig.type && secretFieldConfig.type.type;
     if (typeof secretPrototype.compare !== 'function' || secretPrototype.compare.length < 2) {
       throw new Error(
-        `A createAuth() invocation for the ${JSON.stringify(
-          listKey
-        )} list specifies ${JSON.stringify(
+        `A createAuth() invocation for the "${listKey}" list specifies ${JSON.stringify(
           secretField
         )} as its secretField, which uses the field type ${JSON.stringify(
           secretTypename
@@ -283,9 +286,7 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
     }
     if (typeof secretPrototype.generateHash !== 'function') {
       throw new Error(
-        `A createAuth() invocation for the ${JSON.stringify(
-          listKey
-        )} list specifies ${JSON.stringify(
+        `A createAuth() invocation for the "${listKey}" list specifies ${JSON.stringify(
           secretField
         )} as its secretField, which uses the field type ${JSON.stringify(
           secretTypename
@@ -302,9 +303,7 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
     for (const field of initFirstItem?.fields || []) {
       if (specifiedListConfig.fields[field] === undefined) {
         throw new Error(
-          `A createAuth() invocation for the ${JSON.stringify(
-            listKey
-          )} list specifies the field ${JSON.stringify(
+          `A createAuth() invocation for the "${listKey}" list specifies the field ${JSON.stringify(
             field
           )} in initFirstItem.fields array but no field with that key exist on the list.`
         );
@@ -320,27 +319,44 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
    * the way auth is set up with custom functionality.
    *
    * It validates the auth config against the provided keystone config, and preserves existing
-   * config by composing existing extendGraphqlSchema functions and admin config.
+   * config by composing existing extendGraphqlSchema functions and ui config.
    */
   const withAuth = (keystoneConfig: KeystoneConfig): KeystoneConfig => {
     validateConfig(keystoneConfig);
-    let admin = keystoneConfig.admin;
-    if (keystoneConfig.admin) {
-      admin = {
-        ...keystoneConfig.admin,
-        publicPages: [...(keystoneConfig.admin.publicPages || []), ...adminPublicPages],
-        getAdditionalFiles: [...(keystoneConfig.admin.getAdditionalFiles || []), additionalFiles],
+    let ui = keystoneConfig.ui;
+    if (keystoneConfig.ui) {
+      ui = {
+        ...keystoneConfig.ui,
+        publicPages: [...(keystoneConfig.ui.publicPages || []), ...publicAuthPages],
+        getAdditionalFiles: [...(keystoneConfig.ui.getAdditionalFiles || []), additionalFiles],
         pageMiddleware: async args => {
-          return (await adminPageMiddleware(args)) ?? keystoneConfig.admin?.pageMiddleware?.(args);
+          return (await adminPageMiddleware(args)) ?? keystoneConfig?.ui?.pageMiddleware?.(args);
         },
         enableSessionItem: true,
+        isAccessAllowed: async (context: KeystoneContext) => {
+          // Allow access to the adminMeta data from the /init path to correctly render that page
+          // even if the user isn't logged in (which should always be the case if they're seeing /init)
+          const headers = context.req?.headers;
+          const host = headers ? headers['x-forwarded-host'] || headers['host'] : null;
+          const url = headers?.referer ? new URL(headers.referer) : undefined;
+          const accessingInitPage =
+            url?.pathname === '/init' &&
+            url?.host === host &&
+            (await context.sudo().lists[listKey].count({})) === 0;
+          return (
+            accessingInitPage ||
+            (keystoneConfig.ui?.isAccessAllowed
+              ? keystoneConfig.ui.isAccessAllowed(context)
+              : context.session !== undefined)
+          );
+        },
       };
     }
     const existingExtendGraphQLSchema = keystoneConfig.extendGraphqlSchema;
 
     return {
       ...keystoneConfig,
-      admin,
+      ui,
       // Add the additional fields to the references lists fields object
       // TODO: The additionalListFields we're adding here shouldn't naively replace existing fields with the same key
       // Leaving existing fields in place would allow solution devs to customise these field defs (eg. access control,
@@ -368,10 +384,10 @@ export function createAuth<GeneratedListTypes extends BaseGeneratedListTypes>({
    * your keystone config by hand.
    */
   return {
-    admin: {
+    ui: {
       enableSessionItem: true,
       pageMiddleware: adminPageMiddleware,
-      publicPages: adminPublicPages,
+      publicPages: publicAuthPages,
       getAdditionalFiles: additionalFiles,
     },
     fields: additionalListFields,

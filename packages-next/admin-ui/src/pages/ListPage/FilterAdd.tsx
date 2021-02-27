@@ -1,13 +1,16 @@
 /** @jsx jsx */
-import { FieldMeta, JSONValue } from '@keystone-spike/types';
+
+import { ComponentProps, Fragment, FormEvent, useMemo, useState } from 'react';
+import { FieldMeta, JSONValue } from '@keystone-next/types';
 import { Button } from '@keystone-ui/button';
-import { Divider, Heading, jsx, Stack, useTheme, VisuallyHidden } from '@keystone-ui/core';
+import { Box, Divider, Heading, Stack, VisuallyHidden, jsx, useTheme } from '@keystone-ui/core';
 import { Select } from '@keystone-ui/fields';
 import { ChevronLeftIcon } from '@keystone-ui/icons/icons/ChevronLeftIcon';
 import { ChevronRightIcon } from '@keystone-ui/icons/icons/ChevronRightIcon';
+import { ChevronDownIcon } from '@keystone-ui/icons/icons/ChevronDownIcon';
 import { OptionPrimitive, Options } from '@keystone-ui/options';
 import { PopoverDialog, usePopover } from '@keystone-ui/popover';
-import { ComponentProps, FormEvent, Fragment, useMemo, useState } from 'react';
+
 import { useList } from '../../context';
 import { useRouter } from '../../router';
 
@@ -59,8 +62,17 @@ export function FilterAdd({ listKey }: { listKey: string }) {
 
   return (
     <Fragment>
-      <Button {...trigger.props} ref={trigger.ref} onClick={() => setOpen(true)}>
-        Add Filter
+      <Button
+        tone="active"
+        size="small"
+        {...trigger.props}
+        ref={trigger.ref}
+        onClick={() => setOpen(true)}
+      >
+        <Box as="span" marginRight="xsmall">
+          Filter List
+        </Box>
+        <ChevronDownIcon size="small" />
       </Button>
       <PopoverDialog arrow={arrow} isVisible={isOpen} {...dialog.props} ref={dialog.ref}>
         {isOpen && (

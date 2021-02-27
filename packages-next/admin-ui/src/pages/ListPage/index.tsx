@@ -1,30 +1,36 @@
 /* @jsx jsx */
 
-import { useQuery, gql, useMutation, TypedDocumentNode } from '../../apollo';
-import { Button } from '@keystone-ui/button';
-import { Box, H1, jsx, Stack, useTheme } from '@keystone-ui/core';
 import { Fragment, HTMLAttributes, ReactNode, useEffect, useMemo, useState } from 'react';
-import { ArrowRightCircleIcon } from '@keystone-ui/icons/icons/ArrowRightCircleIcon';
-import { PageContainer } from '../../components/PageContainer';
-import { useList } from '../../context';
-import { useRouter, Link } from '../../router';
-import { CellLink } from '../../components';
-import { getPaginationLabel, Pagination } from './pagination';
-import { useFilters } from './useFilters';
-import { useSelectedFields } from './useSelectedFields';
+
+import { ListMeta } from '@keystone-next/types';
+import { Button } from '@keystone-ui/button';
+import { Box, Center, Heading, jsx, Stack, useTheme } from '@keystone-ui/core';
 import { CheckboxControl } from '@keystone-ui/fields';
-import { DataGetter, DeepNullable, makeDataGetter } from '../../utils/dataGetter';
-import { getRootGraphQLFieldsFromFieldController } from '../../utils/getRootGraphQLFieldsFromFieldController';
+import { ArrowRightCircleIcon } from '@keystone-ui/icons/icons/ArrowRightCircleIcon';
+import { LoadingDots } from '@keystone-ui/loading';
+import { AlertDialog, DrawerController } from '@keystone-ui/modals';
+import { useToasts } from '@keystone-ui/toast';
+
+import { gql, TypedDocumentNode, useMutation, useQuery } from '../../apollo';
+import { CellLink } from '../../components';
 import { CreateItemDrawer } from '../../components/CreateItemDrawer';
+import { PageContainer, HEADER_HEIGHT } from '../../components/PageContainer';
+import { useList } from '../../context';
+import { Link, useRouter } from '../../router';
+import {
+  getRootGraphQLFieldsFromFieldController,
+  DataGetter,
+  DeepNullable,
+  makeDataGetter,
+} from '@keystone-next/admin-ui-utils';
 import { FieldSelection } from './FieldSelection';
 import { FilterAdd } from './FilterAdd';
 import { FilterList } from './FilterList';
-import { ListMeta } from '@keystone-spike/types';
-import { AlertDialog, DrawerController } from '@keystone-ui/modals';
-import { useToasts } from '@keystone-ui/toast';
-import { LoadingDots } from '@keystone-ui/loading';
-import { useSort } from './useSort';
+import { PaginationLabel, Pagination } from './pagination';
 import { SortSelection } from './SortSelection';
+import { useFilters } from './useFilters';
+import { useSelectedFields } from './useSelectedFields';
+import { useSort } from './useSort';
 
 type ListPageProps = {
   listKey: string;
@@ -109,7 +115,9 @@ function useQueryParamsFromLocalStorage(listKey: string) {
   }, [localStorageKey, router]);
 }
 
-export const ListPage = ({ listKey }: ListPageProps) => {
+export const getListPage = (props: ListPageProps) => () => <ListPage {...props} />;
+
+const ListPage = ({ listKey }: ListPageProps) => {
   const list = useList(listKey);
 
   const { query } = useRouter();
@@ -199,9 +207,10 @@ export const ListPage = ({ listKey }: ListPageProps) => {
     itemsFromServer: undefined as any,
     selectedItems: new Set() as ReadonlySet<string>,
   }));
+
   // this removes the selected items which no longer exist when the data changes
   // because someone goes to another page, changes filters or etc.
-  if (data && selectedItemsState.itemsFromServer !== data.items) {
+  if (data && data.items && selectedItemsState.itemsFromServer !== data.items) {
     const newSelectedItems = new Set<string>();
     data.items.forEach((item: any) => {
       if (selectedItemsState.selectedItems.has(item.id)) {
@@ -213,94 +222,162 @@ export const ListPage = ({ listKey }: ListPageProps) => {
       selectedItems: newSelectedItems,
     });
   }
+
   const theme = useTheme();
+  const showCreate = !(metaQuery.data?.keystone.adminMeta.list?.hideCreate ?? true) || null;
 
   return (
-    <PageContainer>
-      <ListPageHeader
-        listKey={listKey}
-        showCreate={!(metaQuery.data?.keystone.adminMeta.list?.hideCreate ?? true)}
-      />
-      <FilterAdd listKey={listKey} />
-
-      <p
-        css={{
-          // TODO: don't do this
-          // (this is to make it so things don't move when a user selects an item)
-          minHeight: 38,
-
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        {data && metaQuery.data
-          ? (() => {
-              const selectedItems = selectedItemsState.selectedItems;
-              const selectedItemsCount = selectedItems.size;
-              if (selectedItemsCount) {
-                return (
-                  <Fragment>
-                    <span css={{ marginRight: theme.spacing.small }}>
-                      Selected {selectedItemsCount} of {data.items.length}
-                    </span>
-                    {!(metaQuery.data?.keystone.adminMeta.list?.hideDelete ?? true) && (
-                      <DeleteManyButton
-                        list={list}
-                        selectedItems={selectedItems}
-                        refetch={refetch}
-                      />
-                    )}
-                  </Fragment>
-                );
-              }
-              return (
-                <Fragment>
-                  {getPaginationLabel({
-                    currentPage,
-                    pageSize,
-                    plural: list.plural,
-                    singular: list.singular,
-                    total: data.meta.count,
-                  })}{' '}
-                  , sorted by <SortSelection list={list} />
-                  with{' '}
-                  <FieldSelection
-                    list={list}
-                    fieldModesByFieldPath={listViewFieldModesByField}
-                  />{' '}
-                  {loading && <LoadingDots label="Loading data" tone="active" />}
-                </Fragment>
-              );
-            })()
-          : ' '}
-      </p>
-      {filters.filters.length ? <FilterList filters={filters.filters} list={list} /> : null}
+    <PageContainer header={<ListPageHeader listKey={listKey} />}>
       {metaQuery.error ? (
         // TODO: Show errors nicely and with information
         'Error...'
       ) : data && metaQuery.data ? (
-        <ListTable
-          count={data.meta.count}
-          currentPage={currentPage}
-          itemsGetter={dataGetter.get('items')}
-          listKey={listKey}
-          pageSize={pageSize}
-          selectedFields={selectedFields}
-          sort={sort}
-          selectedItems={selectedItemsState.selectedItems}
-          onSelectedItemsChange={selectedItems => {
-            setSelectedItems({
-              itemsFromServer: selectedItemsState.itemsFromServer,
-              selectedItems,
-            });
-          }}
-        />
+        <Fragment>
+          <Stack across gap="medium" align="center" marginTop="xlarge">
+            {showCreate && <CreateButton listKey={listKey} />}
+            {data.meta.count || filters.filters.length ? <FilterAdd listKey={listKey} /> : null}
+            {filters.filters.length ? <FilterList filters={filters.filters} list={list} /> : null}
+          </Stack>
+          {data.meta.count ? (
+            <Fragment>
+              <ResultsSummaryContainer>
+                {(() => {
+                  const selectedItems = selectedItemsState.selectedItems;
+                  const selectedItemsCount = selectedItems.size;
+                  if (selectedItemsCount) {
+                    return (
+                      <Fragment>
+                        <span css={{ marginRight: theme.spacing.small }}>
+                          Selected {selectedItemsCount} of {data.items.length}
+                        </span>
+                        {!(metaQuery.data?.keystone.adminMeta.list?.hideDelete ?? true) && (
+                          <DeleteManyButton
+                            list={list}
+                            selectedItems={selectedItems}
+                            refetch={refetch}
+                          />
+                        )}
+                      </Fragment>
+                    );
+                  }
+                  return (
+                    <Fragment>
+                      <PaginationLabel
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                        plural={list.plural}
+                        singular={list.singular}
+                        total={data.meta.count}
+                      />
+                      , sorted by <SortSelection list={list} />
+                      with{' '}
+                      <FieldSelection
+                        list={list}
+                        fieldModesByFieldPath={listViewFieldModesByField}
+                      />{' '}
+                      {loading && (
+                        <LoadingDots label="Loading item data" size="small" tone="active" />
+                      )}
+                    </Fragment>
+                  );
+                })()}
+              </ResultsSummaryContainer>
+              <ListTable
+                count={data.meta.count}
+                currentPage={currentPage}
+                itemsGetter={dataGetter.get('items')}
+                listKey={listKey}
+                pageSize={pageSize}
+                selectedFields={selectedFields}
+                sort={sort}
+                selectedItems={selectedItemsState.selectedItems}
+                onSelectedItemsChange={selectedItems => {
+                  setSelectedItems({
+                    itemsFromServer: selectedItemsState.itemsFromServer,
+                    selectedItems,
+                  });
+                }}
+              />
+            </Fragment>
+          ) : (
+            <ResultsSummaryContainer>No {list.plural} found.</ResultsSummaryContainer>
+          )}
+        </Fragment>
       ) : (
-        'Loading...'
+        <Center css={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
+          <LoadingDots label="Loading item data" size="large" tone="passive" />
+        </Center>
       )}
     </PageContainer>
   );
 };
+
+const CreateButton = ({ listKey }: { listKey: string }) => {
+  const list = useList(listKey);
+  const router = useRouter();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  return (
+    <Fragment>
+      <Button
+        disabled={isCreateModalOpen}
+        onClick={() => {
+          setIsCreateModalOpen(true);
+        }}
+        tone="active"
+        size="small"
+        weight="bold"
+      >
+        Create {list.singular}
+      </Button>
+      <DrawerController isOpen={isCreateModalOpen}>
+        <CreateItemDrawer
+          listKey={listKey}
+          onCreate={({ id }) => {
+            router.push(`/${list.path}/[id]`, `/${list.path}/${id}`);
+          }}
+          onClose={() => {
+            setIsCreateModalOpen(false);
+          }}
+        />
+      </DrawerController>
+    </Fragment>
+  );
+};
+
+const ListPageHeader = ({ listKey }: { listKey: string }) => {
+  const list = useList(listKey);
+  return (
+    <Fragment>
+      <div
+        css={{
+          alignItems: 'center',
+          display: 'flex',
+          flex: 1,
+          justifyContent: 'space-between',
+        }}
+      >
+        <Heading type="h3">{list.label}</Heading>
+        {/* <CreateButton listKey={listKey} /> */}
+      </div>
+    </Fragment>
+  );
+};
+
+const ResultsSummaryContainer = ({ children }: { children: ReactNode }) => (
+  <p
+    css={{
+      // TODO: don't do this
+      // (this is to make it so things don't move when a user selects an item)
+      minHeight: 38,
+
+      display: 'flex',
+      alignItems: 'center',
+    }}
+  >
+    {children}
+  </p>
+);
 
 const SortDirectionArrow = ({ direction }: { direction: 'ASC' | 'DESC' }) => {
   const size = '0.25em';
@@ -424,7 +501,7 @@ function ListTable({
     .supportsLinkTo;
 
   return (
-    <Fragment>
+    <Box paddingBottom="xlarge">
       <TableContainer>
         <colgroup>
           <col width="30" />
@@ -600,76 +677,23 @@ function ListTable({
         </tbody>
       </TableContainer>
       <Pagination listKey={listKey} total={count} currentPage={currentPage} pageSize={pageSize} />
-    </Fragment>
+    </Box>
   );
 }
 
-const ListPageHeader = ({ listKey, showCreate }: { listKey: string; showCreate: boolean }) => {
-  const list = useList(listKey);
-  const router = useRouter();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  return (
-    <Fragment>
-      <Stack
-        across
-        marginY="large"
-        gap="medium"
-        css={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}
-      >
-        <H1>{list.label}</H1>
-        {showCreate && (
-          <Button
-            onClick={() => {
-              setIsCreateModalOpen(true);
-            }}
-            tone="positive"
-          >
-            Create
-          </Button>
-        )}
-      </Stack>
-      <DrawerController isOpen={isCreateModalOpen}>
-        <CreateItemDrawer
-          listKey={listKey}
-          onCreate={({ id }) => {
-            router.push(`/${list.path}/[id]`, `/${list.path}/${id}`);
-          }}
-          onClose={() => {
-            setIsCreateModalOpen(false);
-          }}
-        />
-      </DrawerController>
-    </Fragment>
-  );
-};
-
 const TableContainer = ({ children }: { children: ReactNode }) => {
-  const { colors, shadow } = useTheme();
   return (
-    <Box
-      padding="large"
-      rounding="medium"
+    <table
       css={{
-        background: colors.background,
-        boxShadow: shadow.s200,
+        minWidth: '100%',
+        tableLayout: 'fixed',
+        'tr:last-child td': { borderBottomWidth: 0 },
       }}
+      cellPadding="0"
+      cellSpacing="0"
     >
-      <table
-        css={{
-          minWidth: '100%',
-          tableLayout: 'fixed',
-          'tr:last-child td': { borderBottomWidth: 0 },
-        }}
-        cellPadding="0"
-        cellSpacing="0"
-      >
-        {children}
-      </table>
-    </Box>
+      {children}
+    </table>
   );
 };
 
@@ -686,12 +710,15 @@ const TableHeaderCell = (props: HTMLAttributes<HTMLElement>) => {
   return (
     <th
       css={{
+        backgroundColor: colors.background,
         borderBottom: `2px solid ${colors.border}`,
         color: colors.foregroundDim,
-        fontSize: typography.fontSize.large,
-        fontWeight: typography.fontWeight.regular,
+        fontSize: typography.fontSize.medium,
+        fontWeight: typography.fontWeight.medium,
         padding: spacing.small,
         textAlign: 'left',
+        position: 'sticky',
+        top: 0,
       }}
       {...props}
     />

@@ -1,7 +1,7 @@
 const { PasswordAuthStrategy } = require('@keystonejs/auth-password');
 const { Text, Password } = require('@keystonejs/fields');
-const { createItem } = require('@keystonejs/server-side-graphql-client');
 const { multiAdapterRunners, setupServer } = require('@keystonejs/test-utils');
+const { createItem } = require('@keystonejs/server-side-graphql-client');
 const superagent = require('superagent');
 
 function setupKeystone(adapterName) {
@@ -99,7 +99,7 @@ const runTestInServer = async (app, testFn) => {
   try {
     const _runQuery = async (query, agent) => {
       const { port } = server.address();
-      const url = `http://localhost:${port}/admin/api`;
+      const url = `http://localhost:${port}/api/graphql`;
       agent = agent || superagent.agent();
       const { res } = await agent.post(url).set('Accept', 'application/json').send({ query });
       // console.log(res);

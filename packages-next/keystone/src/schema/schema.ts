@@ -2,13 +2,14 @@ import type { GraphQLSchema } from 'graphql';
 import { mergeSchemas } from '@graphql-tools/merge';
 
 import type {
-  ListSchemaConfig,
-  ListConfig,
-  BaseGeneratedListTypes,
-  KeystoneConfig,
-  ExtendGraphqlSchema,
   BaseFields,
-} from '@keystone-spike/types';
+  BaseGeneratedListTypes,
+  ExtendGraphqlSchema,
+  GraphQLSchemaExtension,
+  KeystoneConfig,
+  ListConfig,
+  ListSchemaConfig,
+} from '@keystone-next/types';
 
 export function createSchema(config: ListSchemaConfig) {
   return config;
@@ -37,11 +38,6 @@ export function gql(strings: TemplateStringsArray) {
 export function graphQLSchemaExtension({
   typeDefs,
   resolvers,
-}: {
-  typeDefs: string;
-  resolvers: any;
-}): ExtendGraphqlSchema {
-  return (schema: GraphQLSchema) => {
-    return mergeSchemas({ schemas: [schema], typeDefs, resolvers });
-  };
+}: GraphQLSchemaExtension): ExtendGraphqlSchema {
+  return (schema: GraphQLSchema) => mergeSchemas({ schemas: [schema], typeDefs, resolvers });
 }

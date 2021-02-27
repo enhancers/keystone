@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { ListMeta } from '@keystone-spike/types';
+import { ListMeta } from '@keystone-next/types';
 import { Button } from '@keystone-ui/button';
 import { Divider, Heading, jsx, Stack } from '@keystone-ui/core';
 import { ChevronDownIcon } from '@keystone-ui/icons/icons/ChevronDownIcon';
@@ -26,7 +26,13 @@ export function SortSelection({ list }: { list: ListMeta }) {
 
   return (
     <Fragment>
-      <Button {...trigger.props} weight="link" ref={trigger.ref} onClick={() => setOpen(true)}>
+      <Button
+        {...trigger.props}
+        weight="link"
+        css={{ padding: 4 }}
+        ref={trigger.ref}
+        onClick={() => setOpen(true)}
+      >
         <span css={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center' }}>
           {sort
             ? `${list.fields[sort.field].label} ${

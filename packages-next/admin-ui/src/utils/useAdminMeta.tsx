@@ -1,14 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLazyQuery } from '../apollo';
 import hashString from '@emotion/hash';
-import { SerializedAdminMeta, AdminMeta, FieldViews, getGqlNames } from '@keystone-spike/types';
+import { AdminMeta, FieldViews, getGqlNames } from '@keystone-next/types';
 import { StaticAdminMetaQuery, staticAdminMetaQuery } from '../admin-meta-graphql';
 
-let expectedExports: Record<string, boolean> = {
-  Cell: true,
-  Field: true,
-  controller: true,
-};
+const expectedExports = new Set(['Cell', 'Field', 'controller', 'CardValue']);
 
 const adminMetaLocalStorageKey = 'keystone.adminMeta';
 
@@ -40,7 +36,7 @@ export function useAdminMeta(adminMetaHash: string, fieldViews: FieldViews) {
     try {
       let parsed = JSON.parse(item);
       if (parsed.hash === adminMetaHash) {
-        return parsed.meta as SerializedAdminMeta;
+        return parsed.meta as StaticAdminMetaQuery['keystone']['adminMeta'];
       }
     } catch (err) {
       return;
@@ -48,10 +44,18 @@ export function useAdminMeta(adminMetaHash: string, fieldViews: FieldViews) {
   }, []);
 
   // it seems like Apollo doesn't skip the first fetch when using skip: true so we're using useLazyQuery instead
-  const [fetchStaticAdminMeta, { data, error, called }] = useLazyQuery(staticAdminMetaQuery);
-  if (typeof window !== 'undefined' && adminMetaFromLocalStorage === undefined && !called) {
-    fetchStaticAdminMeta();
-  }
+  const [fetchStaticAdminMeta, { data, error, called }] = useLazyQuery(staticAdminMetaQuery, {
+    fetchPolicy: 'network-only',
+  });
+
+  let shouldFetchAdminMeta = adminMetaFromLocalStorage === undefined && !called;
+
+  useEffect(() => {
+    if (shouldFetchAdminMeta) {
+      fetchStaticAdminMeta();
+    }
+  }, [shouldFetchAdminMeta, fetchStaticAdminMeta]);
+
   const runtimeAdminMeta = useMemo(() => {
     if ((!data || error) && !adminMetaFromLocalStorage) {
       return undefined;
@@ -75,27 +79,47 @@ export function useAdminMeta(adminMetaHash: string, fieldViews: FieldViews) {
         fields: {},
       };
       list.fields.forEach(field => {
-        Object.keys(expectedExports).forEach(exportName => {
-          if ((fieldViews[field.views] as any)[exportName] === undefined) {
+        expectedExports.forEach(exportName => {
+          if ((fieldViews[field.viewsIndex] as any)[exportName] === undefined) {
             throw new Error(
-              `View for field at path ${list.key}.${field.path} is missing ${exportName} export`
+              `The view for the field at ${list.key}.${field.path} is missing the ${exportName} export`
             );
           }
         });
-        Object.keys(fieldViews[field.views]).forEach(exportName => {
-          if (expectedExports[exportName] === undefined) {
+        Object.keys(fieldViews[field.viewsIndex]).forEach(exportName => {
+          if (!expectedExports.has(exportName) && exportName !== 'allowedExportsOnCustomViews') {
             throw new Error(
-              `Unexpected export named ${exportName} from view from field at ${list.key}.${field.path}`
+              `Unexpected export named ${exportName} from the view from the field at ${list.key}.${field.path}`
             );
           }
         });
+        const views = fieldViews[field.viewsIndex];
+        const customViews: Record<string, any> = {};
+        if (field.customViewsIndex !== null) {
+          const customViewsSource: FieldViews[number] & Record<string, any> =
+            fieldViews[field.customViewsIndex];
+          const allowedExportsOnCustomViews = new Set(views.allowedExportsOnCustomViews);
+          Object.keys(customViewsSource).forEach(exportName => {
+            if (allowedExportsOnCustomViews.has(exportName)) {
+              customViews[exportName] = customViewsSource[exportName];
+            } else if (expectedExports.has(exportName)) {
+              (views as any)[exportName] = customViewsSource[exportName];
+            } else {
+              throw new Error(
+                `Unexpected export named ${exportName} from the custom view from field at ${list.key}.${field.path}`
+              );
+            }
+          });
+        }
         runtimeAdminMeta.lists[list.key].fields[field.path] = {
           ...field,
-          views: fieldViews[field.views],
-          controller: fieldViews[field.views].controller({
+          views,
+          controller: fieldViews[field.viewsIndex].controller({
+            listKey: list.key,
             fieldMeta: field.fieldMeta,
             label: field.label,
             path: field.path,
+            customViews,
           }),
         };
       });

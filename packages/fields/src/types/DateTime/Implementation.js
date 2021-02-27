@@ -23,6 +23,9 @@ class _DateTime extends Implementation {
   gqlOutputFields() {
     return [`${this.path}: DateTime`];
   }
+  gqlOutputFieldResolvers() {
+    return { [`${this.path}`]: item => item[this.path] };
+  }
   gqlQueryInputFields() {
     return [
       ...this.equalityInputFields('DateTime'),
@@ -67,6 +70,9 @@ class _DateTime extends Implementation {
         },
       }),
     };
+  }
+  getBackingTypes() {
+    return { [this.path]: { optional: true, type: 'string | null' } };
   }
 }
 
