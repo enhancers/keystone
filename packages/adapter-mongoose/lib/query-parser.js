@@ -46,7 +46,7 @@ function queryParser({ listAdapter, getUID }, query, pathSoFar = [], include) {
       const { matchTerm, relationshipInfo } = relationshipTokenizer(listAdapter, key, path, getUID);
 
       // Extremely improve mongodb query, using indexes
-      if(Object.keys(value).length == 1 && (value.id || value.id_not || value.id_in || value.id_not_in)) {
+      if(Object.keys(value).length == 1 && (value.id || value.id_not || value.id_in || value.id_not_in) && relationshipInfo.rel.cardinality !== 'N:N') {
         //const fieldParser = key.split(/\_(?=[^\_]+$)/);
         const fieldParser = key.split(/(\_some|\_every|\_none)+$/gm);
         const filterType = fieldParser.length > 1 ? fieldParser[1] : '_only';
